@@ -17,6 +17,19 @@ log = logging.getLogger(__name__)
 _DEFAULT_TASKS = ["retrieval_accuracy", "knowledge_fidelity", "contradiction_detection"]
 
 
+def _ensure_tasks_registered() -> None:
+    """Import built-in task modules so their @register_task decorators fire."""
+    import importlib
+
+    _BUILTIN_TASKS = [
+        "wikibench.tasks.retrieval_accuracy",
+        "wikibench.tasks.knowledge_fidelity",
+        "wikibench.tasks.contradiction_detection",
+    ]
+    for mod_name in _BUILTIN_TASKS:
+        importlib.import_module(mod_name)
+
+
 class Runner:
     """Orchestrate a WikiBench evaluation run.
 
@@ -76,6 +89,8 @@ class Runner:
         8. Teardown adapter.
         """
         t_run_start = time.perf_counter()
+
+        _ensure_tasks_registered()
 
         # ── 1. Load corpus ────────────────────────────────────────────────────
         corpus = self._load_corpus()

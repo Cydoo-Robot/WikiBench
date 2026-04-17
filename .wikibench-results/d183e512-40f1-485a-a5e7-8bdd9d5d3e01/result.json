@@ -1,0 +1,99 @@
+{
+  "run_id": "d183e512-40f1-485a-a5e7-8bdd9d5d3e01",
+  "created_at": "2026-04-17T06:15:09.890701Z",
+  "impl": "naive@0.1.0",
+  "corpus_id": "synthetic-tiny@0.1.0",
+  "environment": {
+    "python_version": "3.13.9 | packaged by Anaconda, Inc. | (main, Oct 21 2025, 19:09:58) [MSC v.1929 64 bit (AMD64)]",
+    "os": "Windows-11-10.0.26200-SP0",
+    "wikibench_version": "0.1.0-alpha",
+    "impl_version": "0.1.0",
+    "impl_commit": null,
+    "llm_models": {
+      "adapter_backend": "gemini/gemini-2.5-flash"
+    },
+    "seed": 42
+  },
+  "ingest": {
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "llm_calls": 0,
+    "duration_s": 0.000019799976143985987,
+    "wiki_tokens": 1027,
+    "cost_usd": null,
+    "extra": {}
+  },
+  "per_task": {
+    "knowledge_fidelity": {
+      "task_id": "knowledge_fidelity",
+      "task_version": "1.0.0",
+      "scores": [
+        {
+          "metric": "knowledge_fidelity",
+          "value": 0.0,
+          "details": {
+            "claim_id": "fc-001",
+            "reference_verdict": "not_supported",
+            "adapter_verdict": "supported",
+            "correct": false,
+            "document_id": "architecture/overview.md"
+          }
+        },
+        {
+          "metric": "knowledge_fidelity",
+          "value": 1.0,
+          "details": {
+            "claim_id": "fc-002",
+            "reference_verdict": "supported",
+            "adapter_verdict": "supported",
+            "correct": true,
+            "document_id": "decisions/2026-01-db-choice.md"
+          }
+        },
+        {
+          "metric": "knowledge_fidelity",
+          "value": 1.0,
+          "details": {
+            "claim_id": "fc-003",
+            "reference_verdict": "supported",
+            "adapter_verdict": "supported",
+            "correct": true,
+            "document_id": "onboarding/incident-response.md"
+          }
+        },
+        {
+          "metric": "knowledge_fidelity",
+          "value": 0.0,
+          "details": {
+            "claim_id": "fc-004",
+            "reference_verdict": "not_supported",
+            "adapter_verdict": "supported",
+            "correct": false,
+            "document_id": "architecture/overview.md"
+          }
+        }
+      ],
+      "slices": {
+        "mean": 0.5,
+        "precision": 0.5,
+        "recall": 1.0,
+        "hallucination_rate": 1.0,
+        "confusion": {
+          "tp": 2,
+          "fp": 2,
+          "fn": 0,
+          "tn": 0
+        }
+      },
+      "warnings": []
+    }
+  },
+  "metrics": {
+    "knowledge_fidelity.mean": 0.5,
+    "knowledge_fidelity.precision": 0.5,
+    "knowledge_fidelity.recall": 1.0,
+    "knowledge_fidelity.hallucination_rate": 1.0
+  },
+  "composite": {},
+  "warnings": []
+}

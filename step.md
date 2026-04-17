@@ -64,3 +64,17 @@
 - [完成] 实现 tests/integration/test_tasks.py（17 个测试，覆盖 T1/T2/T3 正常路径 + 边界情况）
 - [完成] 实现 tests/integration/test_runner.py（15 个测试，覆盖 Runner 初始化/全流程/cost_limit/unknown_task 等）
 - [完成] 周末验证：135 passed, 2 skipped；Runner(NaiveAdapter, corpus=tiny).run() 返回带分数的 BenchmarkResult
+
+## 2026-04-17 Phase 1 Week 4 — CLI `wikibench run` + Reporters + ResultStore
+
+- [完成] 实现 reporters/console.py：Rich Panel + Table 展示 Header/Ingest/Task/Metrics/Composite/Warnings，分数带颜色梯度
+- [完成] 实现 reporters/json.py：render()/save()/load() — BenchmarkResult ↔ JSON 文件完整往返
+- [完成] 实现 reporters/markdown.py：render()/save() — GitHub Flavoured Markdown 报告
+- [完成] 实现 reporters/__init__.py：render(result, format=...) 统一分发入口
+- [完成] 实现 storage/result_store.py：ResultStore.save()/load()/list_runs()/exists()，run_id → <root>/<run_id>/result.json + report.md
+- [完成] 实现 cli/run.py：wikibench run --impl/--corpus/--task/--format/--output/--hard-limit 完整选项，支持 entry-point 名称及 module:Class 两种 adapter 指定方式
+- [完成] 实现 cli/report.py：wikibench report show <path> + wikibench report list <store-root>，支持 console/json/markdown 格式及 --out 写文件
+- [完成] 修复 Runner 中任务模块未导入导致注册表为空的问题（_ensure_tasks_registered）
+- [完成] 新增 tests/unit/test_reporters.py（29 个测试，覆盖 json/markdown/console/ResultStore/dispatch）
+- [完成] 冒烟验证：wikibench run --impl naive --corpus .../tiny --output .wikibench-results 全流程可用，report list/show 正常渲染
+- [完成] 周末验证：164 passed, 4 skipped

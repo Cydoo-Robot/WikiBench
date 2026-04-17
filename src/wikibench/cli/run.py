@@ -1,31 +1,145 @@
-"""wikibench run — execute a benchmark run."""
+"""wikibench run — execute a benchmark evaluation run."""
 
 from __future__ import annotations
 
+import sys
 from typing import Annotated
 
 import typer
+from rich.console import Console
 
 app = typer.Typer(help="Run a WikiBench evaluation.")
 
+_con = Console(stderr=True)
+
 
 @app.callback(invoke_without_command=True)
-def run(
-    impl: Annotated[str, typer.Option("--impl", "-i", help="Adapter name or 'package:Class'.")],
-    corpus: Annotated[str, typer.Option("--corpus", "-c", help="Corpus ID or path.")],
+def run(  # noqa: PLR0913
+    impl: Annotated[
+        str,
+        typer.Option("--impl", "-i", help="Adapter name (registered entry-point) or 'package:ClassName'."),
+    ],
+    corpus: Annotated[
+        str,
+        typer.Option("--corpus", "-c", help="Corpus directory path."),
+    ],
     tasks: Annotated[
         list[str] | None,
-        typer.Option("--task", "-t", help="Task IDs to run (repeatable). Default: all."),
+        typer.Option("--task", "-t", help="Task IDs to run (repeatable). Default: T1+T2+T3."),
     ] = None,
     seed: Annotated[int, typer.Option(help="Random seed.")] = 42,
-    cache_dir: Annotated[str, typer.Option(help="Cache directory.")] = ".wikibench-cache",
-    no_cache: Annotated[bool, typer.Option("--no-cache", help="Disable caching.")] = False,
-    output: Annotated[str | None, typer.Option("--output", "-o", help="Output directory.")] = None,
+    cache_dir: Annotated[
+        str,
+        typer.Option(help="Directory used for LLM response caching."),
+    ] = ".wikibench-cache",
+    no_cache: Annotated[
+        bool,
+        typer.Option("--no-cache", help="Disable response caching."),
+    ] = False,
+    output: Annotated[
+        str | None,
+        typer.Option("--output", "-o", help="Directory to save results (JSON + Markdown)."),
+    ] = None,
     format: Annotated[  # noqa: A002
         str,
-        typer.Option("--format", "-f", help="Report format: console|json|markdown|html."),
+        typer.Option(
+            "--format", "-f",
+            help="Report format printed to stdout: console | json | markdown.",
+        ),
     ] = "console",
+    hard_limit: Annotated[
+        float,
+        typer.Option(
+            "--hard-limit",
+            help="Abort run if cumulative LLM cost (USD) exceeds this value.",
+        ),
+    ] = float("inf"),
+    quiet: Annotated[
+        bool,
+        typer.Option("--quiet", "-q", help="Suppress progress messages."),
+    ] = False,
 ) -> None:
-    """Run a WikiBench evaluation against a specified adapter and corpus."""
-    typer.echo("[wikibench run] Not yet implemented — coming in Phase 1 Week 3.")
-    raise typer.Exit(code=1)
+    """Run a WikiBench evaluation and print (or save) the results."""
+    # ── Resolve adapter ───────────────────────────────────────────────────────
+    adapter_spec = _resolve_adapter_spec(impl)
+
+    # ── Build Runner ──────────────────────────────────────────────────────────
+    from wikibench.runner.runner import Runner
+
+    runner = Runner(
+        adapter_spec=adapter_spec,
+        corpus=corpus,
+        tasks=tasks or None,
+        seed=seed,
+        cache_dir=None if no_cache else cache_dir,
+        hard_limit_usd=hard_limit,
+    )
+
+    if not quiet:
+        _con.print(f"[bold blue]WikiBench[/bold blue] running [green]{impl}[/green] "
+                   f"on corpus [green]{corpus}[/green] …")
+
+    # ── Execute ───────────────────────────────────────────────────────────────
+    try:
+        result = runner.run()
+    except Exception as exc:
+        _con.print(f"[bold red]ERROR:[/bold red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    if not quiet:
+        _con.print(f"[bold green]Done.[/bold green] Run ID: {result.run_id}")
+
+    # ── Save result ───────────────────────────────────────────────────────────
+    if output:
+        from wikibench.storage.result_store import ResultStore
+        store = ResultStore(root=output)
+        run_dir = store.save(result)
+        if not quiet:
+            _con.print(f"Results saved to: {run_dir}")
+
+    # ── Print report ──────────────────────────────────────────────────────────
+    _print_report(result, format)
+
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _resolve_adapter_spec(spec: str):
+    """Resolve an adapter spec string to a class or name.
+
+    Supported formats:
+    * ``"naive"``            — registered entry-point name
+    * ``"mypackage:MyClass"`` — dotted module + class name
+    """
+    if ":" in spec:
+        module_path, cls_name = spec.rsplit(":", 1)
+        import importlib
+        try:
+            mod = importlib.import_module(module_path)
+        except ImportError as exc:
+            _con.print(f"[red]Cannot import module '{module_path}': {exc}[/red]")
+            raise typer.Exit(code=1) from exc
+        cls = getattr(mod, cls_name, None)
+        if cls is None:
+            _con.print(f"[red]Class '{cls_name}' not found in module '{module_path}'.[/red]")
+            raise typer.Exit(code=1)
+        return cls
+    # Plain name — let the Runner resolve via entry_points
+    return spec
+
+
+def _print_report(result, format: str) -> None:  # noqa: A002
+    """Print the report in the requested format to stdout."""
+    con_out = Console()  # stdout
+
+    if format == "console":
+        from wikibench.reporters.console import render
+        render(result, console=con_out)
+    elif format == "json":
+        from wikibench.reporters.json import render
+        con_out.print(render(result))
+    elif format in ("markdown", "md"):
+        from wikibench.reporters.markdown import render
+        con_out.print(render(result))
+    else:
+        _con.print(f"[red]Unknown format '{format}'. Use: console | json | markdown.[/red]")
+        raise typer.Exit(code=1)
