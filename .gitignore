@@ -1,3 +1,6 @@
 .cursor/
 .venv/
 .vscode/
+.env
+.env.local
+*.env
