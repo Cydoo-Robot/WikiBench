@@ -56,6 +56,8 @@ wikibench = "wikibench.cli.main:app"
 naive = "wikibench.adapters.builtin.naive:NaiveAdapter"
 simple_summary = "wikibench.adapters.builtin.simple_summary:SimpleSummaryAdapter"
 reference_wiki = "wikibench.adapters.builtin.reference_wiki:ReferenceWikiAdapter"
+llm_wiki_compiler = "wikibench.adapters.community.llm_wiki_compiler:LLMWikiCompilerAdapter"
+obsidian_wiki = "wikibench.adapters.community.obsidian_wiki:ObsidianWikiAdapter"
 
 [project.entry-points."wikibench.tasks"]
 retrieval_accuracy = "wikibench.tasks.retrieval_accuracy:RetrievalAccuracyTask"
