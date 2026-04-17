@@ -184,6 +184,22 @@ wikibench run --impl reference --corpus ./my-corpus
 - 引入 **增量更新**、**grounding**、**观点综合** 任务
 - 搭建论坛数据爬取 pipeline（HN + SO）
 
+### 4.1.1 第三方评测沙箱原则（normative）
+
+评测**第三方** LLM Wiki 实现时，WikiBench **不得**在仓库内「自造」与上游等价的编译 / 查询逻辑来冒充该工具。正确做法是 **沙箱模式**：
+
+| 原则 | 说明 |
+|------|------|
+| **从 Git 拉取上游** | 在隔离工作目录（如 `.wikibench-sandboxes/<impl>/`）内 `git clone` 官方仓库，**固定 tag 或 commit**（可写入 `adapter.yaml` / CI 矩阵），保证可复现 |
+| **按上游安装** | 严格遵循上游 README：`npm install` / `pip install` / `setup.sh` 等；CI 可对重型依赖（Node 全局包）做 **可选 job**，本地与 nightly 必跑 |
+| **Adapter 只做薄封装** | 负责：写 corpus → 调上游 CLI / 文档规定的入口 → 解析 stdout / 产物目录；**不**复制其算法与提示词策略 |
+| **与内置基线区分** | `naive` / `simple_summary` 等是 WikiBench **内置基线**，可自研；**社区 adapter** 名称对应的必须是**真实上游行为**（经沙箱调用） |
+| **安全与清理** | 沙箱目录默认加入 `.gitignore`；跑完可保留日志供审计；敏感项仅经环境变量注入，不写死进仓库 |
+
+**反例（禁止）**：在 `adapters/community/` 里手写一套「仿 llm-wiki-compiler 的两阶段编译」而不调用 `llmwiki` 可执行文件或上游包。
+
+**正例**：clone `atomicmemory/llm-wiki-compiler` → `npm ci` / `npx llm-wiki-compiler …` → 解析 `wiki/` 输出。
+
 ### 4.2 目标 Adapter 详细调研
 
 #### A · llm-wiki-compiler（atomicmemory/llm-wiki-compiler，536★）
@@ -200,19 +216,23 @@ wikibench run --impl reference --corpus ./my-corpus
 | MCP 集成 | 内置 MCP Server（`llmwiki serve`），提供 `compile_wiki`、`query_wiki`、`search_pages` 等工具 |
 | 依赖 | Node.js >= 18 + API Key（Anthropic 或 OpenAI） |
 
-**WikiBench 接入方案**：`subprocess` 调用 CLI，惰性检测 `llmwiki` 是否已安装。
+**WikiBench 接入方案（沙箱）**：在沙箱目录 clone 上游（或 `npm install -g llm-wiki-compiler` 与上游 lockfile 对齐的版本），`subprocess` 调用 **`llmwiki` 真实 CLI**；惰性检测可执行文件是否存在。
 
 ```
+沙箱准备
+  └── git clone https://github.com/atomicmemory/llm-wiki-compiler.git --depth 1 [--branch <tag>]
+      └── 按上游 README 安装依赖（npm / npx）
+
 ingest(docs)
-  ├── 写 docs → sources/ 目录
-  ├── 逐文件 llmwiki ingest <file>
-  └── llmwiki compile（两阶段：概念提取 → 页面生成）
+  ├── 写 docs → <sandbox>/sources/
+  ├── llmwiki ingest <file>（与上游一致）
+  └── llmwiki compile
 
 query(query)
   └── llmwiki query "<text>"，解析 stdout
 ```
 
-适配器路径：`src/wikibench/adapters/community/llm_wiki_compiler.py`
+适配器路径：`src/wikibench/adapters/community/llm_wiki_compiler.py`（仅封装路径与环境变量，**不**实现编译器本身）
 
 #### B · obsidian-wiki（Ar9av/obsidian-wiki，409★）
 
@@ -227,20 +247,22 @@ query(query)
 | LLM 支持 | 任意代理（Claude Code、Cursor、Windsurf 等），不绑定特定 LLM |
 | 依赖 | Python 3.11+（vault 读写）+ 外部 AI agent 执行技能 |
 
-**WikiBench 接入方案**：在 Python 中**复现**其 vault 编译模式（不依赖外部代理），使用 WikiBench 的 `llm_call` 运行时驱动编译。
+**WikiBench 接入方案（沙箱）**：在沙箱目录 **clone** [Ar9av/obsidian-wiki](https://github.com/Ar9av/obsidian-wiki)，使用仓库内 **真实的** `.skills/`、`.env.example` → `.env` 流程与 `SETUP.md` 约定；**禁止**在 WikiBench 内手写一套「仿 obsidian-wiki vault 结构」的替代实现来冒充该工具。
 
 ```
-ingest(docs)
-  ├── LLM 对每文档提取概念 + 实体
-  ├── 按 obsidian-wiki vault 目录层次生成 markdown 页（含 wikilinks）
-  └── 构建内存 manifest + 概念索引
+沙箱准备
+  └── git clone https://github.com/Ar9av/obsidian-wiki.git --depth 1 [--branch <tag>]
+      └── cp .env.example .env，设置 OBSIDIAN_VAULT_PATH 指向沙箱内临时 vault
 
-query(query)
-  ├── 按关键词/embedding 检索相关 vault 页
-  └── LLM 综合相关页面，输出带 citation 的答案
+ingest / query
+  └── 按上游技能文档编排：或调用上游若提供的脚本；若上游**仅支持 AI 代理驱动**，
+      则 adapter 通过 WikiBench `llm_call` **加载沙箱内 `.skills/` 中的指令文本**作为 prompt 的一部分，
+      使行为与「使用官方仓库技能」一致，而非另写一套平行提示词
 ```
 
-适配器路径：`src/wikibench/adapters/community/obsidian_wiki.py`
+> **说明**：若某版本上游仍无无头（headless）CLI，可在文档中标注该 adapter 为 **semi-automated**，但评测产物路径、目录结构、manifest 格式仍须与 **clone 下来的仓库**一致。
+
+适配器路径：`src/wikibench/adapters/community/obsidian_wiki.py`（编排沙箱 + 调用上游约定，**不**自研 vault 编译器）
 
 #### C · 待定（Phase 1.5 后期）
 
@@ -254,8 +276,9 @@ query(query)
 
 | 任务 | 产出 | 优先级 |
 |------|------|--------|
-| **`LLMWikiCompilerAdapter`**（subprocess，atomicmemory） | `adapters/community/llm_wiki_compiler.py` | 🔴 P0 |
-| **`ObsidianWikiAdapter`**（vault 模式复现） | `adapters/community/obsidian_wiki.py` | 🔴 P0 |
+| **`LLMWikiCompilerAdapter`**（沙箱 clone + `llmwiki` CLI） | `adapters/community/llm_wiki_compiler.py` | 🔴 P0 |
+| **`ObsidianWikiAdapter`**（沙箱 clone + 上游 `.skills/` 编排） | `adapters/community/obsidian_wiki.py` | 🔴 P0 |
+| **沙箱目录与 `.gitignore` 规范** | `.wikibench-sandboxes/`、文档说明固定 commit | 🟠 P1 |
 | `wikibench verify-adapter` 契约测试框架 | 自动化接入验证，支持社区提交 | 🟠 P1 |
 | `SimpleSummaryAdapter` + `ReferenceWikiAdapter` 完整实现 | 内置基线补全 | 🟠 P1 |
 | 标注 small corpus（k8s 500+ / react 500+） | `corpora/small-*` 2+ 个，规模 500+ docs | 🟠 P1 |
@@ -393,12 +416,20 @@ Triage（每周一次）：
 
 ---
 
-## 9. 未决议题
+## 9. 决议项与未决议题
 
-- [ ] **MVP 目标窗口**：6 周是否够？可根据 Cursor 辅助速度动态调整
-- [ ] **LLMWikiCompilerAdapter 的 Node.js 依赖**：是否在 CI 中安装 Node.js？建议 CI 跳过该 adapter，本地开发时手动安装
-- [ ] **ObsidianWikiAdapter embedding 检索**：vault 页面检索是用 keyword BM25 还是向量相似度？MVP 先用关键词，1.5 引入 embedding
-- [ ] **第一个外部 adapter 对接时机**：`llm-wiki-compiler` 有公开 CLI，可直接接入无需联系作者；`obsidian-wiki` 也是开源框架，直接复现模式即可
+### 9.1 已决议
+
+- **MVP 排期原则**：**不绑定固定日历或「N 周内必须完成」**；Phase 1 仍按文档中的周计划作为**逻辑顺序与检查清单**，但以**里程碑是否达成**为准，不以实际经过的周数施压。进度可随实现复杂度与社区反馈调整，**完成度与可复现性优先于截止日期**。
+
+- **第三方依赖与运行环境（Node.js 等）**：不在 WikiBench 主仓库内「内置」上游运行时。评测时在 **沙箱目录**（见 §4.1.1）**从 GitHub 拉取上游项目并本地化部署**（`git clone` + 按 README 安装依赖，如 `npm ci` / 全局 `llmwiki`）。**默认 CI（lint / 单测 / 核心 adapter）不安装 Node.js**；针对 `LLMWikiCompilerAdapter` 的集成验证可放在 **可选 workflow** 或本地 / nightly，避免阻塞主链路。
+
+- **检索与向量策略（ObsidianWiki 等）**：**不由 WikiBench 在框架内选定** BM25 或 embedding。以 **沙箱内已 clone 的上游仓库** 的实现、配置项与文档为准；Adapter 只负责把 corpus 与查询交给该环境，**禁止**在 WikiBench 内单独实现一套检索策略冒充上游行为。
+
+- **首批社区 adapter（llm-wiki-compiler / obsidian-wiki）接入方式**：已定为 **沙箱 + 真上游**，不讨论「是否自研等效实现」。`llm-wiki-compiler`：沙箱内 clone [atomicmemory/llm-wiki-compiler](https://github.com/atomicmemory/llm-wiki-compiler)，调用公开 **`llmwiki` CLI** 编排 ingest/query（§4.2 A）。`obsidian-wiki`：沙箱内 clone [Ar9av/obsidian-wiki](https://github.com/Ar9av/obsidian-wiki)，遵循 **§4.1.1** 与 **§4.2 B**（上游 `.skills/` 与 vault 约定，不另写平行编译器）。**工程排期**（何时写代码、何时进 leaderboard）以 **Phase 1.5 §4.4** 周计划为准，**不作为开放议题**。
+
+### 9.2 未决议题
+
 - [ ] **推广节奏**：什么时候主动在 HN / Reddit 发布？建议等 v0.5.0 两个社区 adapter 跑通后，数字更有说服力
 - [ ] **社区 Discussion 平台**：GitHub Discussions 够用还是需要 Discord？初期 Discussions 即可，有实质用户量再迁 Discord
 - [ ] **语言优先级**：中文 corpus 在 v0.7.0 还是 v1.0.0 引入？取决于是否有中文 LLM Wiki 实现者参与
