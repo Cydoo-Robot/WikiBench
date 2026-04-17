@@ -1,8 +1,23 @@
-"""Adapter contract tests — any adapter must pass these (Phase 1.5)."""
+"""Adapter contract tests — built-in adapters must pass :func:`run_adapter_verify`."""
+
+from __future__ import annotations
+
+from pathlib import Path
 
 import pytest
 
+from wikibench.cli.verify import run_adapter_verify
 
-@pytest.mark.skip(reason="Contract test framework not yet implemented — Phase 1.5")
-def test_contract_placeholder() -> None:
-    pass
+REPO_ROOT = Path(__file__).resolve().parents[2]
+TINY = REPO_ROOT / "corpora" / "synthetic" / "tiny"
+
+
+@pytest.mark.parametrize(
+    "adapter_spec",
+    [
+        "wikibench.adapters.builtin.naive:NaiveAdapter",
+        "wikibench.adapters.builtin.simple_summary:SimpleSummaryAdapter",
+    ],
+)
+def test_builtin_adapter_contract(adapter_spec: str) -> None:
+    run_adapter_verify(adapter_spec, TINY, mock_llm=True)

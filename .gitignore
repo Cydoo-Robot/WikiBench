@@ -1,14 +1,10 @@
-.cursor/
-.venv/
-.vscode/
-.env
-.env.local
-*.env
-.wikibench-cache/
-# diskcache SQLite DB (names vary by version / config)
-.wikibench-cache/cache.db
-.wikibench-cache/.cache.db
-.wikibench-results/
-.wikibench-cache-demo/
-.wikibench-results-demo/
-.wikibench-sandboxes/
+# 忽略所有 . 开头的文件和目录
+.*
+.*/ 
+
+# 以下点开头的文件/目录需要提交到 Git
+!.gitignore
+!.gitattributes
+!.editorconfig
+!.github/
+!.github/**
