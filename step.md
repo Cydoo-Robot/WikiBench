@@ -79,3 +79,17 @@
 - [完成] 冒烟验证：wikibench run --impl naive --corpus .../tiny --output .wikibench-results 全流程可用，report list/show 正常渲染
 - [完成] 周末验证：164 passed, 4 skipped
 - [完成] `.gitignore` 增加 `.wikibench-cache/`、`.wikibench-results/`（本地缓存与评测输出不入库）
+
+## 2026-04-17 Phase 1 Week 5 — SyntheticGenerator（确定性合成语料）
+
+- [完成] 实现 `knowledge_graph.py`：KnowledgeGraph.build（概念列表 + 矛盾对 (0,1),(2,3),…）
+- [完成] 实现 `fact_sampler.py`：DocSpec、Markdown 正文模板、PostgreSQL/MongoDB 矛盾块、QA/fidelity/contradiction 派生
+- [完成] 实现 `doc_writer.py` + `noise.py`：写入 `docs/topics/*.md`、可选 filler 段落
+- [完成] 实现 `verifier.py`：verify_corpus_dir + load_corpus 端到端校验
+- [完成] 实现 `generator.py`：`SyntheticGenerator.generate()` 写 manifest + ground_truth JSONL；`use_llm=True` 显式 NotImplementedError
+- [完成] 实现 `pipeline.py`：`run_pipeline` 薄封装
+- [完成] 实现 `domains/__init__.py`：`get_domain` / `list_domains`，别名 `saas`→`saas_engineering`、`clinical`→`clinical_trials`
+- [完成] 接入 `cli/corpus.py`：`wikibench corpus generate --domain/--n-docs/--out/--seed/--qa-per-doc/--noise`
+- [完成] `pyproject.toml`：对 `corpora/synthetic/**/*.py` 忽略 TC001/TC003（运行时导入与 TCH 规则冲突）
+- [完成] 重写 `tests/unit/test_synthetic_generator.py`（10 个测试，覆盖确定性、pipeline、单文档无矛盾、use_llm）
+- [完成] 周末验证：174 passed, 3 skipped；`wikibench corpus generate --domain saas --n-docs 3` 冒烟通过

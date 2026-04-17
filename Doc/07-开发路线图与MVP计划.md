@@ -23,7 +23,7 @@
 | **0 · 筹备** | 1–2 周 | 定稿设计，搭脚手架 | 仓库骨架、CI、Doc 定稿、v0.1.0-alpha |
 | **1 · MVP** | 4–6 周 | 端到端跑通最小闭环 | synthetic 生成器、3 任务、CLI、HTML 报告、v0.2.0 |
 | **1.5 · 扩展** | 2–3 月 | 覆盖主要实现 + 数据集 | 5+ 适配器、small corpus、grounding/incremental、v0.5.0 |
-| **2 · 企业版** | 6 月+ | WikiProbe + Leaderboard | 监控、CI Action、公开榜单、v1.0.0 |
+| **2 · 企业版** | 6 月+ | WikiBench + Leaderboard | 监控、CI Action、公开榜单、v1.0.0 |
 | **3 · 生态** | 长期 | 成为事实标准 | 论文引用、2+ 下游工具集成、多语言 |
 
 ---
@@ -84,7 +84,7 @@
 - ❌ 增量更新 / staleness（Phase 1.5）
 - ❌ Grounding 任务
 - ❌ Leaderboard 前端
-- ❌ WikiProbe 企业功能
+- ❌ WikiBench 企业功能
 - ❌ 中文 synthetic（MVP 先英文）
 
 ### 3.2 六周周计划
@@ -221,7 +221,7 @@ wikibench run --impl reference --corpus ./my-corpus
 
 ---
 
-## 5. Phase 2 · 企业版 WikiProbe（Month 4 ~ 12）
+## 5. Phase 2 · 企业版 WikiBench（Month 4 ~ 12）
 
 ### 5.1 目标
 
@@ -231,9 +231,9 @@ wikibench run --impl reference --corpus ./my-corpus
 
 | 模块 | 说明 |
 |------|------|
-| `wikiprobe probe` | 一键健康检查 CLI，针对用户自有语料 |
-| `wikiprobe monitor` | 长期监控模式，定期跑 + 存趋势 |
-| GitHub Action `wikiprobe-action@v1` | CI 集成模板 |
+| `WikiBench probe` | 一键健康检查 CLI，针对用户自有语料 |
+| `WikiBench monitor` | 长期监控模式，定期跑 + 存趋势 |
+| GitHub Action `WikiBench-action@v1` | CI 集成模板 |
 | **Large corpus（50000+ docs）** | 基于 HN + SO + Reddit 全量爬取，含 T5 ground truth |
 | 对抗性 corpus | 专门诱发幻觉的测试集 |
 | Coverage Calibration (M3) | adapter 自评准确性校验 |
@@ -251,7 +251,7 @@ wikibench run --impl reference --corpus ./my-corpus
 ### 5.4 里程碑：v1.0.0
 
 退出条件：
-- 至少 2 家企业公开使用 WikiProbe
+- 至少 2 家企业公开使用 WikiBench
 - 动态 leaderboard 每周自动刷新
 - 总用户数（下载 / star / adapter 作者）达到 "实质标准" 门槛
 
