@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import pytest
-
 from wikibench.models.corpus import (
+    ContradictionPair,
     Corpus,
     CorpusMetadata,
-    ContradictionPair,
     FidelityClaim,
     GroundTruth,
     QAPair,

@@ -109,6 +109,7 @@ class Runner:
         if self.cache_dir:
             cache = ResponseCache(cache_dir=self.cache_dir)
             from wikibench.runtime import cache as _cache_mod
+
             _cache_mod._default_cache = cache
 
         try:
@@ -175,6 +176,7 @@ class Runner:
         if self._corpus_spec is None:
             raise ValueError("Runner: corpus must be provided.")
         from wikibench.corpora.loader import load_corpus
+
         return load_corpus(self._corpus_spec)
 
     def _resolve_adapter(self) -> Any:
@@ -240,15 +242,19 @@ class Runner:
                 scores.append(score)
             except Exception as exc:
                 from wikibench.runtime.cost import CostLimitExceededError
+
                 if isinstance(exc, CostLimitExceededError):
                     raise  # propagate immediately — abort the whole run
                 log.error("Runner: error on query %s (%s): %s", query.id, task_id, exc)
                 from wikibench.models.result import Score
-                scores.append(Score(
-                    metric=task_id,
-                    value=0.0,
-                    details={"error": str(exc)},
-                ))
+
+                scores.append(
+                    Score(
+                        metric=task_id,
+                        value=0.0,
+                        details={"error": str(exc)},
+                    )
+                )
 
         result = task.aggregate(scores)
         log.info(
@@ -261,6 +267,7 @@ class Runner:
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
 
 def _flatten_metrics(per_task: dict[str, TaskResult]) -> dict[str, float]:
     """Produce a flat ``{metric_name: value}`` dict from all task results."""

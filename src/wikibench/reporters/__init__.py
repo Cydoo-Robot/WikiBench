@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from wikibench.models.result import BenchmarkResult
 
 
-def render(result: BenchmarkResult, format: str = "console", **kwargs) -> str | None:  # noqa: A002
+def render(result: BenchmarkResult, format: str = "console", **kwargs: Any) -> str | None:
     """Render *result* in the requested format.
 
     Args:
@@ -18,16 +20,20 @@ def render(result: BenchmarkResult, format: str = "console", **kwargs) -> str | 
         ``"console"`` (output goes directly to stdout via Rich).
     """
     if format == "console":
-        from wikibench.reporters.console import render as _render
-        _render(result, **kwargs)
+        from wikibench.reporters.console import render as render_console
+
+        render_console(result, **kwargs)
         return None
     if format == "json":
-        from wikibench.reporters.json import render as _render
-        return _render(result, **kwargs)
+        from wikibench.reporters.json import render as render_json
+
+        return render_json(result, **kwargs)
     if format in ("markdown", "md"):
-        from wikibench.reporters.markdown import render as _render
-        return _render(result)
+        from wikibench.reporters.markdown import render as render_markdown
+
+        return render_markdown(result)
     if format == "html":
-        from wikibench.reporters.html.renderer import render as _render
-        return _render(result)
+        from wikibench.reporters.html.renderer import render as render_html
+
+        return render_html(result)
     raise ValueError(f"Unknown format {format!r}. Choices: console, json, markdown, html.")

@@ -97,9 +97,7 @@ class ResultStore:
         if not self.root.exists():
             return []
         return sorted(
-            d.name
-            for d in self.root.iterdir()
-            if d.is_dir() and (d / "result.json").exists()
+            d.name for d in self.root.iterdir() if d.is_dir() and (d / "result.json").exists()
         )
 
     def exists(self, run_id: str) -> bool:

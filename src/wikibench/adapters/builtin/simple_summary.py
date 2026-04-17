@@ -68,8 +68,7 @@ class SimpleSummaryAdapter(WikiAdapter):
 
         for doc in docs:
             user_msg = (
-                f"Document path: {doc.path}\n"
-                f"Modality: {doc.modality}\n\n---\n\n{doc.content}"
+                f"Document path: {doc.path}\nModality: {doc.modality}\n\n---\n\n{doc.content}"
             )
             raw = llm_call(
                 model=self.model,

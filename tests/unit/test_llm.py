@@ -5,7 +5,6 @@ All tests run with WIKIBENCH_LLM_MOCK=1 — no real API calls.
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from unittest.mock import patch
 
@@ -22,6 +21,7 @@ def _mock_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     reset_default_cache()
     # Point default cache to a temp dir so tests don't pollute the project cache
     from wikibench.runtime import cache as _cache_mod
+
     _cache_mod._default_cache = ResponseCache(cache_dir=tmp_path / "test-cache")
     yield  # type: ignore[misc]
     reset_default_cache()
@@ -71,18 +71,23 @@ class TestLLMCallMockMode:
 class TestLLMCallMockDisabled:
     """Tests that verify the real call path (still mocked at litellm level)."""
 
-    def test_propagates_litellm_error(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    def test_propagates_litellm_error(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
         monkeypatch.delenv("WIKIBENCH_LLM_MOCK", raising=False)
         from wikibench.runtime import cache as _cache_mod
+
         _cache_mod._default_cache = ResponseCache(cache_dir=tmp_path / "cache-err", enabled=False)
 
         import litellm
 
-        with patch.object(litellm, "completion", side_effect=RuntimeError("API error")):
-            with pytest.raises(RuntimeError, match="API error"):
-                llm_call(
-                    model="gpt-4o-mini",
-                    messages=[{"role": "user", "content": "fail"}],
-                    purpose="test",
-                    use_cache=False,
-                )
+        with (
+            patch.object(litellm, "completion", side_effect=RuntimeError("API error")),
+            pytest.raises(RuntimeError, match="API error"),
+        ):
+            llm_call(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": "fail"}],
+                purpose="test",
+                use_cache=False,
+            )

@@ -15,8 +15,8 @@ def render(result: BenchmarkResult) -> str:
 
     env = result.environment
 
-    w(f"# WikiBench Report\n\n")
-    w(f"| Field | Value |\n|---|---|\n")
+    w("# WikiBench Report\n\n")
+    w("| Field | Value |\n|---|---|\n")
     w(f"| Run ID | `{result.run_id}` |\n")
     w(f"| Timestamp | {result.created_at.strftime('%Y-%m-%d %H:%M:%S UTC')} |\n")
     w(f"| Impl | `{result.impl}` |\n")

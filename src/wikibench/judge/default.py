@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+from typing import Any
 
 from wikibench.judge.base import BaseJudge, JudgeVerdict
 from wikibench.runtime.llm import llm_call
@@ -65,7 +66,7 @@ class DefaultJudge(BaseJudge):
         )
 
         # Gemini 2.5-flash thinking disabled for deterministic judging
-        extra: dict = {}
+        extra: dict[str, Any] = {}
         if "gemini-2.5" in self.model or "gemini-3" in self.model:
             extra["thinking"] = {"type": "disabled"}
 

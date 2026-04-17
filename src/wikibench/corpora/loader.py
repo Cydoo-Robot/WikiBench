@@ -7,18 +7,19 @@ import logging
 from pathlib import Path
 
 from wikibench.models.corpus import (
-    Corpus,
     ContradictionPair,
+    Corpus,
     FidelityClaim,
     GroundTruth,
     QAPair,
 )
-from wikibench.models.document import Document
+from wikibench.models.document import Document, Modality
 
 log = logging.getLogger(__name__)
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
+
 
 def load_corpus(path: str | Path) -> Corpus:
     """Load a WikiBench corpus from a directory containing ``manifest.yaml``.
@@ -72,6 +73,7 @@ def load_corpus(path: str | Path) -> Corpus:
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
 
+
 def _require_dir(path: Path) -> None:
     if not path.exists():
         raise FileNotFoundError(f"Corpus directory not found: {path}")
@@ -101,7 +103,7 @@ def _load_documents(docs_dir: Path) -> list[Document]:
     return documents
 
 
-def _infer_modality(rel_path: str) -> str:
+def _infer_modality(rel_path: str) -> Modality:
     """Infer document modality from directory name conventions."""
     parts = rel_path.lower().split("/")
     if any(p in ("meetings", "transcripts") for p in parts):

@@ -109,9 +109,7 @@ def build_ground_truth(
         doc_id = path
 
         # --- QA (deterministic, answer strings appear in body) ---
-        slo_q = (
-            f"What availability SLO is stated for {topic} in this document?"
-        )
+        slo_q = f"What availability SLO is stated for {topic} in this document?"
         slo_a = "99.9%"
         qa_pairs.append(
             QAPair(

@@ -6,16 +6,16 @@ from wikibench.models.query import Query, QueryResponse
 from wikibench.models.result import BenchmarkResult, IngestResult, IngestStats, RunEnvironment
 
 __all__ = [
-    "Modality",
-    "Document",
-    "ForumThread",
-    "Query",
-    "QueryResponse",
+    "BenchmarkResult",
     "Corpus",
     "CorpusMetadata",
+    "Document",
+    "ForumThread",
     "GroundTruth",
-    "IngestStats",
     "IngestResult",
+    "IngestStats",
+    "Modality",
+    "Query",
+    "QueryResponse",
     "RunEnvironment",
-    "BenchmarkResult",
 ]

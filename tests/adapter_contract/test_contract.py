@@ -17,6 +17,7 @@ TINY = REPO_ROOT / "corpora" / "synthetic" / "tiny"
     [
         "wikibench.adapters.builtin.naive:NaiveAdapter",
         "wikibench.adapters.builtin.simple_summary:SimpleSummaryAdapter",
+        "wikibench.adapters.builtin.reference_wiki:ReferenceWikiAdapter",
     ],
 )
 def test_builtin_adapter_contract(adapter_spec: str) -> None:

@@ -21,7 +21,7 @@ _con = Console(stderr=True)
 def _load_yaml_config(path: str | None) -> dict[str, Any]:
     if not path:
         return {}
-    import yaml  # type: ignore[import-untyped]
+    import yaml
 
     p = Path(path)
     raw = yaml.safe_load(p.read_text(encoding="utf-8"))

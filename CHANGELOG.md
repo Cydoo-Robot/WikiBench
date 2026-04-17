@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`wikibench verify`**: smoke-test an adapter (`--adapter` / `-a`) — `describe`, `ingest`, one query each for T1/T2/T3; `run_adapter_verify()` for programmatic use. Default `--corpus corpora/synthetic/tiny`, mock LLM unless `--no-mock`.
+- **`ReferenceWikiAdapter`**: per-document summaries + one LLM pass to build a Markdown **index**, then query against index + summaries (reference / Karpathy-style baseline).
 - **`SimpleSummaryAdapter`**: per-document LLM summaries at ingest; queries use the summary bundle (second built-in baseline alongside `NaiveAdapter`).
 - **`Runner`**: accepts `adapter_spec="module.path:ClassName"` strings (same as CLI), not only entry-point names or classes.
 - **Examples** (`examples/`): four walkthroughs — corpus verify, synthetic generation, benchmark run (mock / real LLM), persisted results + SQLite + `wikibench report`.

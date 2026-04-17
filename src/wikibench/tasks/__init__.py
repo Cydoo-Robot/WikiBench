@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
 
 from wikibench.models.corpus import Corpus
 from wikibench.models.query import Query, QueryResponse

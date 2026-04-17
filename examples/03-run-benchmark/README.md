@@ -1,6 +1,6 @@
 # 示例 3 · 运行评测（内置基线适配器）
 
-对 **synthetic-tiny** 运行默认任务（T1/T2/T3）。内置基线可二选一：**`naive`**（全文上下文）或 **`simple_summary`**（ingest 阶段按篇摘要后再问答）。
+对 **synthetic-tiny** 运行默认任务（T1/T2/T3）。内置基线可选：**`naive`**（全文上下文）、**`simple_summary`**（按篇摘要）、**`reference_wiki`**（摘要 + 全局索引 LLM）。
 
 ## A · 无 API 费用（Mock LLM，适合 CI / 本地冒烟）
 

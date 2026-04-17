@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import textwrap
 from pathlib import Path
 
@@ -12,8 +11,8 @@ from wikibench.corpora.loader import load_corpus
 from wikibench.corpora.manifest import load_manifest, verify_corpus_dir
 from wikibench.models.corpus import Corpus
 
-
 # ── Fixtures ──────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture(scope="module")
 def tiny_corpus(tiny_corpus_path: Path) -> Corpus:
@@ -21,6 +20,7 @@ def tiny_corpus(tiny_corpus_path: Path) -> Corpus:
 
 
 # ── load_corpus: happy path ───────────────────────────────────────────────────
+
 
 class TestLoadCorpus:
     def test_returns_corpus_instance(self, tiny_corpus: Corpus) -> None:
@@ -73,6 +73,7 @@ class TestLoadCorpus:
 
 # ── load_corpus: error cases ──────────────────────────────────────────────────
 
+
 class TestLoadCorpusErrors:
     def test_missing_directory(self, tmp_path: Path) -> None:
         with pytest.raises(FileNotFoundError):
@@ -80,12 +81,12 @@ class TestLoadCorpusErrors:
 
     def test_missing_manifest(self, tmp_path: Path) -> None:
         (tmp_path / "docs").mkdir()
-        with pytest.raises(FileNotFoundError, match="manifest.yaml"):
+        with pytest.raises(FileNotFoundError, match=r"manifest\.yaml"):
             load_corpus(tmp_path)
 
     def test_invalid_manifest_yaml(self, tmp_path: Path) -> None:
         (tmp_path / "manifest.yaml").write_text(":: invalid: yaml: [", encoding="utf-8")
-        with pytest.raises(ValueError, match="Malformed YAML|Invalid manifest"):
+        with pytest.raises(ValueError, match=r"Malformed YAML|Invalid manifest"):
             load_corpus(tmp_path)
 
     def test_manifest_missing_required_fields(self, tmp_path: Path) -> None:
@@ -95,6 +96,7 @@ class TestLoadCorpusErrors:
 
 
 # ── verify_corpus_dir ─────────────────────────────────────────────────────────
+
 
 class TestVerifyCorpusDir:
     def test_tiny_corpus_passes(self, tiny_corpus_path: Path) -> None:
@@ -136,6 +138,7 @@ class TestVerifyCorpusDir:
 
 # ── load_manifest ─────────────────────────────────────────────────────────────
 
+
 class TestLoadManifest:
     def test_loads_tiny_manifest(self, tiny_corpus_path: Path) -> None:
         meta = load_manifest(tiny_corpus_path / "manifest.yaml")
@@ -149,6 +152,7 @@ class TestLoadManifest:
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
 
 def _write_minimal_manifest(root: Path, doc_count: int = 1) -> None:
     root.joinpath("manifest.yaml").write_text(

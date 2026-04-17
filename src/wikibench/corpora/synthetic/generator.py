@@ -5,6 +5,7 @@ from __future__ import annotations
 import random
 from datetime import date
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -55,9 +56,7 @@ class SyntheticGenerator:
 
         graph = KnowledgeGraph.build(self._domain, n_docs)
         specs = sample_documents(graph, n_docs, rng)
-        qa_rows, fid_rows, contr_rows = build_ground_truth(
-            graph, specs, qa_per_doc=self.qa_per_doc
-        )
+        qa_rows, fid_rows, contr_rows = build_ground_truth(graph, specs, qa_per_doc=self.qa_per_doc)
 
         out_path.mkdir(parents=True, exist_ok=True)
         (out_path / "ground_truth").mkdir(parents=True, exist_ok=True)
@@ -65,7 +64,7 @@ class SyntheticGenerator:
         write_documents(out_path, specs, rng=rng, noise_probability=self.noise_probability)
 
         corpus_id = f"synthetic-gen-{graph.domain_id}-s{self.seed}@0.1.0"
-        manifest: dict = {
+        manifest: dict[str, Any] = {
             "id": corpus_id,
             "version": "0.1.0",
             "description": (
@@ -95,7 +94,7 @@ class SyntheticGenerator:
         return out_path
 
 
-def _write_jsonl(path: Path, rows: list) -> None:
+def _write_jsonl(path: Path, rows: list[Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as fh:
         for row in rows:

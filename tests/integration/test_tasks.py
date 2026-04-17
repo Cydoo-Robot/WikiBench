@@ -21,6 +21,7 @@ def _mock(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setenv("WIKIBENCH_LLM_MOCK", "1")
     reset_default_cache()
     from wikibench.runtime import cache as _c
+
     _c._default_cache = ResponseCache(cache_dir=tmp_path / "task-cache")
     yield  # type: ignore[misc]
     reset_default_cache()
@@ -33,6 +34,7 @@ def tiny_corpus(tmp_path_factory: pytest.TempPathFactory) -> Corpus:
 
 
 # ── T1 RetrievalAccuracy ──────────────────────────────────────────────────────
+
 
 class TestRetrievalAccuracyTask:
     def test_prepare_returns_queries(self, tiny_corpus: Corpus) -> None:
@@ -87,6 +89,7 @@ class TestRetrievalAccuracyTask:
 
 # ── T2 KnowledgeFidelity ──────────────────────────────────────────────────────
 
+
 class TestKnowledgeFidelityTask:
     def test_prepare_returns_fidelity_queries(self, tiny_corpus: Corpus) -> None:
         task = KnowledgeFidelityTask()
@@ -121,7 +124,9 @@ class TestKnowledgeFidelityTask:
         task = KnowledgeFidelityTask()
         queries = task.prepare(tiny_corpus)
         scores = [
-            task.score(q, QueryResponse(answer="x", structured={"verdict": "not_supported"}), tiny_corpus)
+            task.score(
+                q, QueryResponse(answer="x", structured={"verdict": "not_supported"}), tiny_corpus
+            )
             for q in queries
         ]
         result = task.aggregate(scores)
@@ -142,6 +147,7 @@ class TestKnowledgeFidelityTask:
 
 
 # ── T3 ContradictionDetection ─────────────────────────────────────────────────
+
 
 class TestContradictionDetectionTask:
     def test_prepare_returns_queries(self, tiny_corpus: Corpus) -> None:

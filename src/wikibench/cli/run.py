@@ -19,7 +19,9 @@ _con = Console(stderr=True)
 def run(
     impl: Annotated[
         str,
-        typer.Option("--impl", "-i", help="Adapter name (registered entry-point) or 'package:ClassName'."),
+        typer.Option(
+            "--impl", "-i", help="Adapter name (registered entry-point) or 'package:ClassName'."
+        ),
     ],
     corpus: Annotated[
         str,
@@ -44,12 +46,15 @@ def run(
     ] = None,
     sqlite: Annotated[
         str | None,
-        typer.Option("--sqlite", help="Also append this run to a SQLite file (benchmark_runs table)."),
+        typer.Option(
+            "--sqlite", help="Also append this run to a SQLite file (benchmark_runs table)."
+        ),
     ] = None,
     format: Annotated[
         str,
         typer.Option(
-            "--format", "-f",
+            "--format",
+            "-f",
             help="Report format printed to stdout: console | json | markdown | html.",
         ),
     ] = "console",
@@ -82,8 +87,10 @@ def run(
     )
 
     if not quiet:
-        _con.print(f"[bold blue]WikiBench[/bold blue] running [green]{impl}[/green] "
-                   f"on corpus [green]{corpus}[/green] …")
+        _con.print(
+            f"[bold blue]WikiBench[/bold blue] running [green]{impl}[/green] "
+            f"on corpus [green]{corpus}[/green] …"
+        )
 
     # ── Execute ───────────────────────────────────────────────────────────────
     try:
@@ -98,6 +105,7 @@ def run(
     # ── Save result ───────────────────────────────────────────────────────────
     if output:
         from wikibench.storage.result_store import ResultStore
+
         store = ResultStore(root=output)
         run_dir = store.save(result)
         if not quiet:
@@ -105,6 +113,7 @@ def run(
 
     if sqlite:
         from wikibench.storage.sqlite import BenchmarkSqliteStore
+
         BenchmarkSqliteStore(sqlite).save(result)
         if not quiet:
             _con.print(f"Run appended to SQLite: {sqlite}")
@@ -114,6 +123,7 @@ def run(
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
 
 def _resolve_adapter_spec(spec: str) -> Any:
     """Resolve an adapter spec string to a class or name.
@@ -125,6 +135,7 @@ def _resolve_adapter_spec(spec: str) -> Any:
     if ":" in spec:
         module_path, cls_name = spec.rsplit(":", 1)
         import importlib
+
         try:
             mod = importlib.import_module(module_path)
         except ImportError as exc:
@@ -150,19 +161,27 @@ def _print_report(
 
     if report_format == "console":
         from wikibench.reporters.console import render
+
         render(result, console=con_out)
     elif report_format == "json":
-        from wikibench.reporters.json import render
-        con_out.print(render(result))
+        from wikibench.reporters.json import render as render_json
+
+        con_out.print(render_json(result))
     elif report_format in ("markdown", "md"):
-        from wikibench.reporters.markdown import render
-        con_out.print(render(result))
+        from wikibench.reporters.markdown import render as render_markdown
+
+        con_out.print(render_markdown(result))
     elif report_format == "html":
         from wikibench.reporters.html.renderer import render as html_render
+
         if output:
-            _con.print("[dim]HTML report also written as report.html under --output directory.[/dim]")
+            _con.print(
+                "[dim]HTML report also written as report.html under --output directory.[/dim]"
+            )
         else:
             con_out.print(html_render(result))
     else:
-        _con.print(f"[red]Unknown format '{report_format}'. Use: console | json | markdown | html.[/red]")
+        _con.print(
+            f"[red]Unknown format '{report_format}'. Use: console | json | markdown | html.[/red]"
+        )
         raise typer.Exit(code=1)

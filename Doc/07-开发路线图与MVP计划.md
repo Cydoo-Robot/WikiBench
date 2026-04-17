@@ -29,38 +29,40 @@
 
 ## 2. Phase 0 · 筹备（Week -2 ~ 0）
 
+> **状态（与仓库对齐，2026-Q2）**：下列 checklist 反映 **当前代码库**；未勾选项为**刻意延后**（公网文档站域名、Discord、TestPyPI 首发等），不代表阻塞开发。
+
 ### 目标
 把规划变成可执行的代码骨架，自己第一天就能跑起来。
 
 ### 任务清单
 
-- [ ] **仓库骨架**
-  - [ ] `pyproject.toml` + `uv.lock`
-  - [ ] 第 06 节规定的目录结构（空实现）
-  - [ ] `ruff`, `mypy`, `pytest` 配置
-  - [ ] pre-commit hooks
-- [ ] **CI/CD**
-  - [ ] GitHub Actions：Linux/macOS/Windows × Python 3.11/3.12
-  - [ ] lint + 类型检查 + unit 测试
-  - [ ] PR 自动标签 / 模板
-- [ ] **文档站**
-  - [ ] MkDocs Material 基础配置
-  - [ ] Doc/ 的内容迁移
-  - [ ] `docs.wikibench.dev`（或 GitHub Pages 起步）
-- [ ] **社区**
-  - [ ] LICENSE（Apache 2.0）
-  - [ ] CODE_OF_CONDUCT.md
-  - [ ] CONTRIBUTING.md
-  - [ ] Issue / PR 模板
-  - [ ] Discord / Discussions 开通
-- [ ] **v0.1.0-alpha 发布**
-  - [ ] 空壳包发布到 TestPyPI
-  - [ ] `wikibench --version` 能跑
+- [x] **仓库骨架**
+  - [x] `pyproject.toml` + `uv.lock`
+  - [x] 第 06 节规定的目录结构（`src/wikibench/` 等）
+  - [x] `ruff`, `mypy`, `pytest` 配置
+  - [x] pre-commit hooks
+- [x] **CI/CD**
+  - [x] GitHub Actions：Linux/macOS/Windows × Python 3.11/3.12
+  - [x] lint + 类型检查 + unit / integration / adapter_contract + 构建 wheel
+  - [x] PR / Issue 模板
+- [x] **文档站（仓库内）**
+  - [x] MkDocs Material 基础配置（`mkdocs.yml` + `docs/`）
+  - [x] `Doc/` 规划文档为单一真源
+  - [ ] 独立域名 `docs.wikibench.dev`（或 GitHub Pages 对外站）— *可选，未上线*
+- [x] **社区（仓库侧）**
+  - [x] LICENSE（Apache 2.0）
+  - [x] CODE_OF_CONDUCT.md
+  - [x] CONTRIBUTING.md
+  - [x] Issue / PR 模板
+  - [ ] Discord / 额外即时通讯 — *可选*
+- [ ] **包发布（公网索引）**
+  - [ ] `v0.1.0-alpha` / `v0.2.0-alpha` 发布到 **TestPyPI / PyPI**（当前以源码 + `uv sync` 为主）
+  - [x] 本地 / editable 安装后 `wikibench --version` 可用
 
 ### 退出条件
 - CI 全绿
-- 任何人 `pip install wikibench` 能装上（虽然暂无功能）
-- Doc/ 全部定稿
+- 贡献者 `git clone` + `uv sync --extra dev` 可开发、可跑测试（公网 `pip install` 见发布项）
+- `Doc/` 与 `examples/` 可复现主流程
 
 ---
 
@@ -77,7 +79,7 @@
 - ✅ `wikibench run` CLI 能端到端跑通
 - ✅ HTML + Markdown + JSON 报告
 - ✅ SQLite 结果存储
-- ✅ 至少 1 个外部实现的社区 adapter（找 ussumant 或 Ar9av）
+- [ ] **至少 1 个外部实现的社区 adapter**（ussumant / Ar9av 等 — **Phase 1.5**，见 §4；与内置 `naive` / `simple_summary` / `reference_wiki` 不同）
 
 **明确不做**：
 - ❌ 增量更新 / staleness（Phase 1.5）
@@ -90,79 +92,80 @@
 
 #### Week 1 · 核心数据模型 + Corpus 加载
 
-- [ ] `models/` 全部 pydantic 类（Document / Query / Corpus / Result）
-- [ ] `corpora/loader.py` 能加载 manifest.yaml 格式
-- [ ] `corpora/manifest.py` schema 校验
-- [ ] 手写一个极小 corpus `synthetic-tiny`（5 docs + 10 QA + 2 矛盾）用于测试
-- [ ] unit tests 覆盖数据模型
+- [x] `models/` 全部 pydantic 类（Document / Query / Corpus / Result）
+- [x] `corpora/loader.py` 能加载 manifest.yaml 格式
+- [x] `corpora/manifest.py` schema 校验
+- [x] 手写一个极小 corpus `synthetic-tiny`（5 docs + 10 QA + 2 矛盾）用于测试
+- [x] unit tests 覆盖数据模型
 
-**周末可验证**：`python -m wikibench.corpora.loader corpora/synthetic-tiny` 输出正确统计。
+**周末可验证**：在仓库根目录执行 `python -m wikibench.corpora corpora/synthetic/tiny` 或 `wikibench corpus verify corpora/synthetic/tiny`（路径以仓库内 `corpora/synthetic/tiny` 为准）。
 
 #### Week 2 · Runtime + 最小 Adapter
 
-- [ ] `runtime/llm.py` 统一 llm_call（包 litellm）
-- [ ] `runtime/token_counter.py`
-- [ ] `runtime/cache.py`
-- [ ] `adapters/__init__.py` WikiAdapter ABC
-- [ ] `adapters/builtin/naive.py` 完整实现
-- [ ] adapter smoke test framework
+- [x] `runtime/llm.py` 统一 llm_call（包 litellm）
+- [x] `runtime/token_counter.py`
+- [x] `runtime/cache.py`
+- [x] `adapters/__init__.py` WikiAdapter ABC
+- [x] `adapters/builtin/naive.py` 完整实现
+- [x] adapter 冒烟：`WIKIBENCH_LLM_MOCK=1` + 单测；后续扩展为 `wikibench verify`（见 Week 6）
 
 **周末可验证**：`NaiveAdapter.ingest(tiny_docs)` + `.query(q)` 能返回合理响应。
 
 #### Week 3 · Task + Runner 串起来
 
-- [ ] `tasks/__init__.py` Task ABC + registry
-- [ ] `tasks/retrieval_accuracy.py` 完整实现
-- [ ] `tasks/knowledge_fidelity.py` 完整实现
-- [ ] `tasks/contradiction_detection.py` 完整实现
-- [ ] `runner/runner.py` 最小编排
-- [ ] `runner/env.py` 收集 RunEnvironment
+- [x] `tasks/__init__.py` Task ABC + registry
+- [x] `tasks/retrieval_accuracy.py` 完整实现
+- [x] `tasks/knowledge_fidelity.py` 完整实现
+- [x] `tasks/contradiction_detection.py` 完整实现
+- [x] `runner/runner.py` 最小编排
+- [x] `runner/env.py` 收集 RunEnvironment
 
 **周末可验证**：`Runner(..., corpus=tiny).run()` 返回 BenchmarkResult 有分数。
 
 #### Week 4 · CLI + Metric + Reporter
 
-- [ ] `cli/main.py` + `cli/run.py`（typer）
-- [ ] `metrics/_registry.py` + 三维度指标
-- [ ] `metrics/aggregators/composite.py` 默认 composite
-- [ ] `reporters/console.py` Rich 彩色表格
-- [ ] `reporters/json.py`
-- [ ] `reporters/markdown.py`
+- [x] `cli/main.py` + `cli/run.py`（typer）
+- [x] `metrics/_registry.py` + 三维度指标
+- [x] `metrics/aggregators/composite.py` 默认 composite
+- [x] `reporters/console.py` Rich 彩色表格
+- [x] `reporters/json.py`
+- [x] `reporters/markdown.py`
 
-**周末可验证**：`wikibench run --impl naive --corpus synthetic-tiny` 在终端打出漂亮表格。
+**周末可验证**：在仓库根目录 `wikibench run --impl naive --corpus corpora/synthetic/tiny` 在终端打出表格（或 `--format json`）。
 
 #### Week 5 · Synthetic Generator + SimpleSummary + Reference
 
-- [ ] `corpora/synthetic/generator.py` 主流程
-- [ ] `corpora/synthetic/knowledge_graph.py`
-- [ ] `corpora/synthetic/fact_sampler.py`
-- [ ] `corpora/synthetic/doc_writer.py`（多模态）
-- [ ] `corpora/synthetic/noise.py`
-- [ ] `corpora/synthetic/verifier.py`
-- [ ] `corpora/synthetic/domains/saas_engineering.py`
-- [ ] `SimpleSummaryAdapter` 实现
-- [ ] `ReferenceWikiAdapter` 实现
+- [x] `corpora/synthetic/generator.py` 主流程
+- [x] `corpora/synthetic/knowledge_graph.py`
+- [x] `corpora/synthetic/fact_sampler.py`
+- [x] `corpora/synthetic/doc_writer.py`（当前以 Markdown 为主）
+- [x] `corpora/synthetic/noise.py`
+- [x] `corpora/synthetic/verifier.py`
+- [x] `corpora/synthetic/domains/saas_engineering.py` 等（`domains/__init__.py`）
+- [x] `SimpleSummaryAdapter` 实现
+- [x] `ReferenceWikiAdapter` 实现
 
 **周末可验证**：
 ```
 wikibench corpus generate --domain saas --n-docs 50 --out ./my-corpus
-wikibench run --impl reference --corpus ./my-corpus
+wikibench run --impl reference_wiki --corpus ./my-corpus
 ```
+（`--impl` 使用 entry-point 名 `reference_wiki`，或 `wikibench.adapters.builtin.reference_wiki:ReferenceWikiAdapter`。）
 
 #### Week 6 · HTML 报告 + 存储 + 发布
 
-- [ ] `reporters/html/` 独立文件报告（嵌入图表）
-- [ ] `storage/sqlite.py`
-- [ ] 端到端 e2e 测试全绿
-- [ ] `examples/` 四个示例都跑得通
-- [ ] 文档更新 + CHANGELOG
-- [ ] **v0.2.0 正式发布到 PyPI**
-- [ ] 写 launch 博文 + 发 Karpathy 原推评论区（低调）
+- [x] `reporters/html/` 单页 HTML 报告（`report.html`；图表类增强可后续迭代）
+- [x] `storage/sqlite.py` + `wikibench run --sqlite`
+- [x] 端到端 e2e：`tests/e2e/test_full_run.py`（默认 `WIKIBENCH_LLM_MOCK=1`）
+- [x] `examples/` 四步 walkthrough（见仓库 `examples/README.md`）
+- [x] `CHANGELOG` + `Doc/10-测试说明书.md` 等文档迭代
+- [ ] **v0.2.0-alpha（或正式 v0.2.0）发布到 PyPI / TestPyPI** — *待办*
+- [ ] 写 launch 博文 + 原推评论区（低调）— *待办*
 
 **退出条件（MVP 成功标准）**：
-1. `pip install wikibench` 后 10 分钟内能跑出第一份报告
-2. synthetic-tiny + small corpus 全部任务跑通
-3. 所有 MVP 必须项 green-check
+1. `git clone` + `uv sync --extra dev` 后，按 `examples/` 可在 **约 10 分钟内**跑通「语料 → run → 报告」；公网 `pip install` 以 PyPI 发布项为准。
+2. `synthetic-tiny` 上 T1–T3 全跑通；**small corpus（500+）** 为 Phase 1.5 数据目标，不阻塞 MVP 代码闭环。
+3. §3.1「必须做」中除 **社区 adapter** 外均已满足；社区 adapter 以 §4 Phase 1.5 为准。
 
 ### 3.3 MVP 风险缓冲
 
@@ -279,8 +282,8 @@ ingest / query
 | **`LLMWikiCompilerAdapter`**（沙箱 clone + `llmwiki` CLI） | `adapters/community/llm_wiki_compiler.py` | 🔴 P0 |
 | **`ObsidianWikiAdapter`**（沙箱 clone + 上游 `.skills/` 编排） | `adapters/community/obsidian_wiki.py` | 🔴 P0 |
 | **沙箱目录与 `.gitignore` 规范** | `.wikibench-sandboxes/`、文档说明固定 commit | 🟠 P1 |
-| `wikibench verify-adapter` 契约测试框架 | 自动化接入验证，支持社区提交 | 🟠 P1 |
-| `SimpleSummaryAdapter` + `ReferenceWikiAdapter` 完整实现 | 内置基线补全 | 🟠 P1 |
+| `wikibench verify` + `run_adapter_verify` + `tests/adapter_contract/` | 内置 adapter 契约冒烟；社区接入可在此基础上扩展 | ✅ 已完成（持续增强） |
+| `SimpleSummaryAdapter` + `ReferenceWikiAdapter` 完整实现 | 内置基线补全 | ✅ 已完成 |
 | 标注 small corpus（k8s 500+ / react 500+） | `corpora/small-*` 2+ 个，规模 500+ docs | 🟠 P1 |
 | **HN Fetcher 爬虫** | `corpora/crawlers/hackernews.py` | 🟡 P2 |
 | **SO XML Parser** | `corpora/crawlers/stackoverflow.py` | 🟡 P2 |
@@ -297,8 +300,8 @@ ingest / query
 
 | 周次 | 任务 | 交付 |
 |------|------|------|
-| 1.5-W1 | **LLMWikiCompilerAdapter** + ObsidianWikiAdapter 实现 + 契约测试 | 两个社区 adapter 跑通，verify-adapter 绿 |
-| 1.5-W2 | SimpleSummary + Reference 实现 + small corpus（k8s 500）| 4 个 adapter 可在同一 corpus 横向对比 |
+| 1.5-W1 | **LLMWikiCompilerAdapter** + ObsidianWikiAdapter 实现 + 契约扩展 | 两个社区 adapter 跑通；`wikibench verify` 覆盖社区 spec |
+| 1.5-W2 | small corpus（k8s 500）+ 与内置三基线同跑验证 | 内置 naive / simple_summary / reference_wiki 已就绪；补 **small** 语料后可横向对比 |
 | 1.5-W3 | HN Fetcher + 数据清洗 | 可采集 HN Ask HN，输出 ForumThread JSON |
 | 1.5-W4 | SO XML Parser | 从 Data Dump 提取 5 个标签的 QA |
 | 1.5-W5 | Stance Clustering Pipeline + T5 ground truth | opinion_map.jsonl 自动生成，人工抽查 |
@@ -369,7 +372,7 @@ Triage（每周一次）：
 **反馈优先处理区域**（预判高频问题）：
 - 评测任务覆盖不足（如缺乏 Grounding、Incremental 任务）
 - Corpus 领域偏差（当前只有 SaaS / Clinical，缺 k8s / react / 金融 / 中文）
-- adapter 接入门槛高（`verify-adapter` 自检不够友好）
+- adapter 接入门槛高（`wikibench verify` 对社区场景的提示与文档仍可增强）
 - 报告可读性（图表、对比视图）
 
 ### 5.4 框架持续完善路线

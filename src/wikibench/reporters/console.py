@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any
-
+from rich import box
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich import box
 
 from wikibench.models.result import BenchmarkResult
 
@@ -54,7 +52,9 @@ def render(result: BenchmarkResult, console: Console | None = None) -> None:
     # ── Ingest stats ──────────────────────────────────────────────────────────
     ingest = result.ingest
     con.print()
-    ig_table = Table("Metric", "Value", title="Ingest Stats", box=box.SIMPLE_HEAVY, show_header=True)
+    ig_table = Table(
+        "Metric", "Value", title="Ingest Stats", box=box.SIMPLE_HEAVY, show_header=True
+    )
     ig_table.add_row("Wiki tokens", str(ingest.wiki_tokens))
     ig_table.add_row("Tokens in", str(ingest.tokens_in))
     ig_table.add_row("Tokens out", str(ingest.tokens_out))
@@ -68,7 +68,8 @@ def render(result: BenchmarkResult, console: Console | None = None) -> None:
     for task_id, task_result in result.per_task.items():
         con.print()
         t = Table(
-            "Metric", "Value",
+            "Metric",
+            "Value",
             title=f"Task: [bold]{task_id}[/bold] v{task_result.task_version}",
             box=box.SIMPLE_HEAVY,
         )
@@ -89,7 +90,8 @@ def render(result: BenchmarkResult, console: Console | None = None) -> None:
     if result.metrics:
         con.print()
         m_table = Table(
-            "Metric", "Score",
+            "Metric",
+            "Score",
             title="Flat Metrics Summary",
             box=box.SIMPLE_HEAVY,
         )

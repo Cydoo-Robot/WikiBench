@@ -84,15 +84,11 @@ select = [
     "RUF",            # ruff-specific
 ]
 ignore = [
-    "ANN101", "ANN102",   # self/cls type hints
     "ANN401",             # Any allowed in some places
     "E501",               # line length handled by formatter
+    "TC001",              # TYPE_CHECKING-only imports: noisy with Pydantic/runtime patterns
+    "TC003",              # stdlib imports in module scope: often intentional for isinstance, etc.
 ]
-
-[tool.ruff.lint.per-file-ignores]
-# Runtime imports required for corpus I/O; TCH wants TYPE_CHECKING-only imports.
-"src/wikibench/corpora/synthetic/**/*.py" = ["TC001", "TC003"]
-"src/wikibench/reporters/html/**/*.py" = ["TC001"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["wikibench"]
@@ -132,3 +128,8 @@ omit = ["*/tests/*", "*/crawlers/*"]
 [tool.coverage.report]
 show_missing = true
 fail_under = 70
+
+[dependency-groups]
+dev = [
+    "types-pyyaml>=6.0.12.20260408",
+]

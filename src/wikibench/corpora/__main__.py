@@ -38,7 +38,9 @@ def main(path: str) -> int:
     gt = corpus.ground_truth
 
     # ── Summary table ─────────────────────────────────────────────────────────
-    table = Table(title=f"Corpus: [bold]{meta.id}[/bold]", show_header=True, header_style="bold cyan")
+    table = Table(
+        title=f"Corpus: [bold]{meta.id}[/bold]", show_header=True, header_style="bold cyan"
+    )
     table.add_column("Field", style="dim", min_width=20)
     table.add_column("Value")
 

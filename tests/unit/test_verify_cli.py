@@ -24,6 +24,7 @@ def cli_runner() -> CliRunner:
     [
         "wikibench.adapters.builtin.naive:NaiveAdapter",
         "wikibench.adapters.builtin.simple_summary:SimpleSummaryAdapter",
+        "wikibench.adapters.builtin.reference_wiki:ReferenceWikiAdapter",
     ],
 )
 def test_run_adapter_verify_smoke(spec: str) -> None:

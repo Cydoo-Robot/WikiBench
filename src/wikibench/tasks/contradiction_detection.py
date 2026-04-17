@@ -27,7 +27,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from wikibench.models.corpus import Corpus, ContradictionPair
+from wikibench.models.corpus import ContradictionPair, Corpus
 from wikibench.models.query import Query, QueryResponse
 from wikibench.models.result import Score, TaskResult
 from wikibench.tasks import Task, register_task
@@ -56,8 +56,7 @@ class ContradictionDetectionTask(Task):
             q = Query(
                 id=pair.id,
                 text=(
-                    f"Do documents '{pair.doc_id_a}' and '{pair.doc_id_b}' "
-                    "contradict each other?"
+                    f"Do documents '{pair.doc_id_a}' and '{pair.doc_id_b}' contradict each other?"
                 ),
                 intent="contradiction_check",
                 params={
@@ -97,8 +96,7 @@ class ContradictionDetectionTask(Task):
             # No structured response — try to infer from free text
             answer_lower = response.answer.lower()
             adapter_flag = any(
-                kw in answer_lower
-                for kw in ("contradict", "conflict", "inconsistent", "disagree")
+                kw in answer_lower for kw in ("contradict", "conflict", "inconsistent", "disagree")
             )
             log.debug("T3: no structured response for %r; inferred flag=%s", query.id, adapter_flag)
 
@@ -125,10 +123,11 @@ class ContradictionDetectionTask(Task):
 
         # All ground truth items are positives; precision requires negatives
         tp = sum(1 for s in scores if s.details.get("correct") and s.details.get("ground_truth"))
-        fn = sum(1 for s in scores if not s.details.get("correct") and s.details.get("ground_truth"))
+        fn = sum(
+            1 for s in scores if not s.details.get("correct") and s.details.get("ground_truth")
+        )
         # fp / tn from negative samples (future corpus versions)
         fp = 0
-        tn = 0
 
         recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
         precision = tp / (tp + fp) if (tp + fp) > 0 else 1.0  # no FP → perfect precision

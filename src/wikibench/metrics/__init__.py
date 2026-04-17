@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 _METRIC_REGISTRY: dict[str, dict[str, Any]] = {}
 
 
 def register_metric(
-    id: str,  # noqa: A002
+    id: str,
     higher_is_better: bool = True,
-    range: tuple[float, float] = (0.0, 1.0),  # noqa: A002
+    range: tuple[float, float] = (0.0, 1.0),
 ) -> Callable[[Callable[..., float]], Callable[..., float]]:
     """Decorator to register a metric computation function."""
 

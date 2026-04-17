@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 
 def embed(texts: list[str], model: str = "text-embedding-3-small") -> list[list[float]]:
     raise NotImplementedError("embed — Phase 1.5.")

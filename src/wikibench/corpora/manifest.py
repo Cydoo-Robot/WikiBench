@@ -17,6 +17,7 @@ log = logging.getLogger(__name__)
 
 # ── Loading ───────────────────────────────────────────────────────────────────
 
+
 def load_manifest(manifest_path: str | Path) -> CorpusMetadata:
     """Parse and validate a corpus ``manifest.yaml`` file.
 
@@ -50,6 +51,7 @@ def load_manifest(manifest_path: str | Path) -> CorpusMetadata:
 
 
 # ── Integrity verification ────────────────────────────────────────────────────
+
 
 @dataclass
 class VerifyResult:

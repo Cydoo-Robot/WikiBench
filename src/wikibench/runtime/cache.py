@@ -27,7 +27,9 @@ from typing import Any
 log = logging.getLogger(__name__)
 
 
-def _make_key(model: str, messages: list[dict[str, str]], extra: dict[str, Any] | None = None) -> str:
+def _make_key(
+    model: str, messages: list[dict[str, str]], extra: dict[str, Any] | None = None
+) -> str:
     """Derive a stable cache key from call parameters."""
     payload: dict[str, Any] = {"model": model, "messages": messages}
     if extra:

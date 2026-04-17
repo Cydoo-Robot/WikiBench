@@ -5,10 +5,10 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from wikibench.models.document import Document, ForumThread
+from wikibench.models.corpus import CorpusMetadata
+from wikibench.models.document import Document
 from wikibench.models.query import Query, QueryResponse
-from wikibench.models.corpus import CorpusMetadata, GroundTruth
-from wikibench.models.result import IngestStats, BenchmarkResult, RunEnvironment
+from wikibench.models.result import BenchmarkResult, IngestStats, RunEnvironment
 
 
 class TestDocument:
@@ -36,7 +36,10 @@ class TestQuery:
             id="q2",
             text="Is this claim correct?",
             intent="fidelity_check",
-            params={"claim": "PostgreSQL is used", "decision_space": ["supported", "not_supported"]},
+            params={
+                "claim": "PostgreSQL is used",
+                "decision_space": ["supported", "not_supported"],
+            },
         )
         assert q.params["claim"] == "PostgreSQL is used"
 

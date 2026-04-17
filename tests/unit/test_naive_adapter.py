@@ -21,6 +21,7 @@ def _setup(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setenv("WIKIBENCH_LLM_MOCK", "1")
     reset_default_cache()
     from wikibench.runtime import cache as _c
+
     _c._default_cache = ResponseCache(cache_dir=tmp_path / "naive-cache")
     yield  # type: ignore[misc]
     reset_default_cache()
@@ -40,6 +41,7 @@ def docs() -> list[Document]:
 
 
 # ── ingest ────────────────────────────────────────────────────────────────────
+
 
 class TestIngest:
     def test_returns_ingest_result(self, adapter: NaiveAdapter, docs: list[Document]) -> None:
@@ -68,6 +70,7 @@ class TestIngest:
 
 
 # ── query ─────────────────────────────────────────────────────────────────────
+
 
 class TestQuery:
     def test_qa_query(self, adapter: NaiveAdapter, docs: list[Document]) -> None:
@@ -100,6 +103,7 @@ class TestQuery:
 
 # ── _build_messages ───────────────────────────────────────────────────────────
 
+
 class TestBuildMessages:
     def test_qa_has_system_and_user(self) -> None:
         q = Query(id="q", text="What is X?", intent="qa")
@@ -120,6 +124,7 @@ class TestBuildMessages:
 
 # ── _extract_json ─────────────────────────────────────────────────────────────
 
+
 class TestExtractJson:
     def test_plain_json(self) -> None:
         result = _extract_json('{"verdict": "supported"}')
@@ -131,7 +136,7 @@ class TestExtractJson:
         assert result["verdict"] == "not_supported"
 
     def test_json_embedded_in_text(self) -> None:
-        text = 'Here is the answer: {"has_contradiction": false, "pairs": []} – done.'
+        text = 'Here is the answer: {"has_contradiction": false, "pairs": []} - done.'
         result = _extract_json(text)
         assert result["has_contradiction"] is False
 

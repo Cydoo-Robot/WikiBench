@@ -18,7 +18,9 @@ def verify_generated_corpus(corpus_root: str | Path) -> VerifyResult:
     try:
         corpus = load_corpus(root)
     except Exception as exc:
-        return VerifyResult(ok=False, errors=[f"load_corpus failed: {exc}"], warnings=result.warnings)
+        return VerifyResult(
+            ok=False, errors=[f"load_corpus failed: {exc}"], warnings=result.warnings
+        )
 
     extra_warnings = list(result.warnings)
     n = len(corpus.documents)

@@ -24,7 +24,6 @@ Aggregate metrics
 from __future__ import annotations
 
 import logging
-from collections import defaultdict
 from typing import Any
 
 from wikibench.models.corpus import Corpus, FidelityClaim
@@ -85,9 +84,7 @@ class KnowledgeFidelityTask(Task):
             )
 
         # Extract verdict from structured response
-        adapter_verdict = str(
-            response.structured.get("verdict", "")
-        ).lower().strip()
+        adapter_verdict = str(response.structured.get("verdict", "")).lower().strip()
 
         # Normalise common variants
         _ALIASES = {
@@ -153,7 +150,9 @@ class KnowledgeFidelityTask(Task):
 
         precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
         recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-        hallucination_rate = hallucination_count / total_not_supported if total_not_supported > 0 else 0.0
+        hallucination_rate = (
+            hallucination_count / total_not_supported if total_not_supported > 0 else 0.0
+        )
 
         slices: dict[str, Any] = {
             "mean": overall,

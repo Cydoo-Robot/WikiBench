@@ -38,9 +38,7 @@ log = logging.getLogger(__name__)
 # ── Mock mode ─────────────────────────────────────────────────────────────────
 _MOCK_ENV_VARS = {"WIKIBENCH_LLM_MOCK", "WIKIBENCH_TEST_MODE"}
 
-_MOCK_REPLY = (
-    '{"verdict": "supported", "explanation": "Mock response for testing."}'
-)
+_MOCK_REPLY = '{"verdict": "supported", "explanation": "Mock response for testing."}'
 
 
 def _is_mock_mode() -> bool:
@@ -48,6 +46,7 @@ def _is_mock_mode() -> bool:
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
+
 
 def llm_call(
     model: str,
@@ -115,8 +114,11 @@ def llm_call(
         tokens_in = count_messages_tokens(messages, model)
         tokens_out = count_tokens(_MOCK_REPLY, model)
         CostTracker.current().record(
-            model=model, purpose=purpose,
-            tokens_in=tokens_in, tokens_out=tokens_out, cached=False,
+            model=model,
+            purpose=purpose,
+            tokens_in=tokens_in,
+            tokens_out=tokens_out,
+            cached=False,
         )
         if use_cache:
             effective_cache.set(model, messages, _MOCK_REPLY)

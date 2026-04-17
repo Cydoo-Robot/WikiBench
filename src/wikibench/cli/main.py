@@ -28,7 +28,7 @@ def main(
 # Sub-commands are registered in their own modules and imported here.
 # Deferred import avoids circular deps at import time.
 def _register_subcommands() -> None:
-    from wikibench.cli import corpus, report, run, verify  # noqa: F401
+    from wikibench.cli import corpus, report, run, verify
 
     app.add_typer(run.app, name="run")
     app.add_typer(corpus.app, name="corpus")

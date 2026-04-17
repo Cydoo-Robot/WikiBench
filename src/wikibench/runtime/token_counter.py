@@ -8,7 +8,6 @@ the model's tokeniser is not available locally.
 from __future__ import annotations
 
 import logging
-import re
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +29,10 @@ _GOOGLE_MODEL_PREFIXES = ("gemini/", "google/", "gemini-")
 
 def _is_google_model(model: str) -> bool:
     bare = model.split("/")[-1].lower()
-    return any(model.lower().startswith(p) for p in _GOOGLE_MODEL_PREFIXES) or bare.startswith("gemini")
+    return any(model.lower().startswith(p) for p in _GOOGLE_MODEL_PREFIXES) or bare.startswith(
+        "gemini"
+    )
+
 
 # Rough chars-per-token ratios used when tiktoken is unavailable.
 _CHARS_PER_TOKEN = 4.0
@@ -99,6 +101,7 @@ def _resolve_encoding(model: str) -> str:
     # Try tiktoken's own resolution
     try:
         import tiktoken
+
         tiktoken.encoding_for_model(bare)
         return bare
     except Exception:

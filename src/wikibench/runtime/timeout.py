@@ -22,8 +22,9 @@ import ctypes
 import logging
 import platform
 import threading
+from collections.abc import Callable, Generator
 from contextlib import contextmanager
-from typing import Callable, Generator, TypeVar
+from typing import TypeVar
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ F = TypeVar("F", bound=Callable[..., object])
 _IS_WINDOWS = platform.system() == "Windows"
 
 
-class TimeoutError(RuntimeError):  # noqa: A001 — intentional shadow
+class TimeoutError(RuntimeError):
     """Raised when an operation exceeds its allotted time."""
 
     def __init__(self, seconds: float) -> None:
@@ -41,6 +42,7 @@ class TimeoutError(RuntimeError):  # noqa: A001 — intentional shadow
 
 
 # ── Context manager ───────────────────────────────────────────────────────────
+
 
 @contextmanager
 def timeout(seconds: float) -> Generator[None, None, None]:
@@ -66,6 +68,7 @@ def timeout(seconds: float) -> Generator[None, None, None]:
 
 # ── Decorator ─────────────────────────────────────────────────────────────────
 
+
 def with_timeout(seconds: float) -> Callable[[F], F]:
     """Decorator version of :func:`timeout`."""
 
@@ -84,6 +87,7 @@ def with_timeout(seconds: float) -> Callable[[F], F]:
 
 # ── Platform implementations ──────────────────────────────────────────────────
 
+
 @contextmanager
 def _unix_timeout(seconds: float) -> Generator[None, None, None]:
     import signal
@@ -91,13 +95,14 @@ def _unix_timeout(seconds: float) -> Generator[None, None, None]:
     def _handler(signum: int, frame: object) -> None:
         raise TimeoutError(seconds)
 
-    old_handler = signal.signal(signal.SIGALRM, _handler)
-    signal.setitimer(signal.ITIMER_REAL, seconds)
+    # Unix-only APIs; not present in typeshed's Windows stubs.
+    old_handler = signal.signal(signal.SIGALRM, _handler)  # type: ignore[attr-defined]
+    signal.setitimer(signal.ITIMER_REAL, seconds)  # type: ignore[attr-defined]
     try:
         yield
     finally:
-        signal.setitimer(signal.ITIMER_REAL, 0)
-        signal.signal(signal.SIGALRM, old_handler)
+        signal.setitimer(signal.ITIMER_REAL, 0)  # type: ignore[attr-defined]
+        signal.signal(signal.SIGALRM, old_handler)  # type: ignore[attr-defined]
 
 
 @contextmanager
@@ -107,22 +112,21 @@ def _windows_timeout(seconds: float) -> Generator[None, None, None]:
     cancelled = threading.Event()
 
     def _watchdog() -> None:
-        if not cancelled.wait(timeout=seconds):
+        if not cancelled.wait(timeout=seconds) and main_thread_id is not None:
             # Inject TimeoutError into the calling thread
-            if main_thread_id is not None:
-                ret = ctypes.pythonapi.PyThreadState_SetAsyncExc(
-                    ctypes.c_ulong(main_thread_id),
-                    ctypes.py_object(TimeoutError),
-                )
-                if ret == 0:
-                    log.debug("Timeout injection failed (thread may have finished)")
+            ret = ctypes.pythonapi.PyThreadState_SetAsyncExc(
+                ctypes.c_ulong(main_thread_id),
+                ctypes.py_object(TimeoutError),
+            )
+            if ret == 0:
+                log.debug("Timeout injection failed (thread may have finished)")
 
     watchdog = threading.Thread(target=_watchdog, daemon=True)
     watchdog.start()
     try:
         yield
-    except TimeoutError:
-        raise TimeoutError(seconds)
+    except TimeoutError as exc:
+        raise TimeoutError(seconds) from exc
     finally:
         cancelled.set()
         watchdog.join(timeout=1.0)

@@ -101,7 +101,9 @@ class CostTracker:
 
         total = self.total_usd
         if not self._warned and total >= self.warn_threshold_usd:
-            log.warning("Cost warning: $%.4f spent (threshold $%.4f)", total, self.warn_threshold_usd)
+            log.warning(
+                "Cost warning: $%.4f spent (threshold $%.4f)", total, self.warn_threshold_usd
+            )
             self._warned = True
 
         if total >= self.hard_limit_usd:
@@ -145,12 +147,12 @@ class CostTracker:
     # ── Thread-local singleton helpers ────────────────────────────────────────
 
     @classmethod
-    def current(cls) -> "CostTracker":
+    def current(cls) -> CostTracker:
         """Return the tracker installed for the current thread, or a no-op one."""
         return getattr(cls._local, "tracker", _NOOP_TRACKER)
 
     @classmethod
-    def install(cls, tracker: "CostTracker") -> None:
+    def install(cls, tracker: CostTracker) -> None:
         """Install ``tracker`` as the active tracker for the current thread."""
         cls._local.tracker = tracker
 
@@ -160,6 +162,7 @@ class CostTracker:
 
 
 # ── Standalone helpers ────────────────────────────────────────────────────────
+
 
 def estimate_cost(model: str, tokens_in: int, tokens_out: int) -> float:
     """Estimate cost in USD for a single LLM call.

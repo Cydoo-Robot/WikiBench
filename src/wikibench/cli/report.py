@@ -62,6 +62,7 @@ def list_runs(
 
 # ── Shared implementation ──────────────────────────────────────────────────────
 
+
 def _do_report(path: str, format: str, out: str | None, run_id: str | None) -> None:
     from pathlib import Path
 
@@ -93,8 +94,10 @@ def _do_report(path: str, format: str, out: str | None, run_id: str | None) -> N
 
     if format == "console":
         from wikibench.reporters.console import render
+
         if out:
             from io import StringIO
+
             buf = StringIO()
             con_buf = Console(file=buf, no_color=True, width=120)
             render(result, console=con_buf)
@@ -102,21 +105,24 @@ def _do_report(path: str, format: str, out: str | None, run_id: str | None) -> N
         else:
             render(result, console=con_out)
     elif format == "json":
-        from wikibench.reporters.json import render
-        text = render(result)
+        from wikibench.reporters.json import render as render_json
+
+        text = render_json(result)
         if out:
             _write_out(out, text)
         else:
             con_out.print(text)
     elif format in ("markdown", "md"):
-        from wikibench.reporters.markdown import render
-        text = render(result)
+        from wikibench.reporters.markdown import render as render_markdown
+
+        text = render_markdown(result)
         if out:
             _write_out(out, text)
         else:
             con_out.print(text)
     elif format == "html":
         from wikibench.reporters.html.renderer import render as html_render
+
         text = html_render(result)
         if out:
             _write_out(out, text)
@@ -129,6 +135,7 @@ def _do_report(path: str, format: str, out: str | None, run_id: str | None) -> N
 
 def _write_out(path: str, content: str) -> None:
     from pathlib import Path
+
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(content, encoding="utf-8")

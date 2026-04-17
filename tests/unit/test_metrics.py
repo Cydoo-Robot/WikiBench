@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from wikibench.metrics import list_metrics, register_metric
 
 

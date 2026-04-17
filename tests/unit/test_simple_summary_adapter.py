@@ -45,7 +45,9 @@ class TestIngest:
         assert result.stats.llm_calls == len(docs)
         assert result.stats.wiki_tokens > 0
 
-    def test_export_wiki_contains_paths(self, adapter: SimpleSummaryAdapter, docs: list[Document]) -> None:
+    def test_export_wiki_contains_paths(
+        self, adapter: SimpleSummaryAdapter, docs: list[Document]
+    ) -> None:
         adapter.ingest(docs)
         wiki = adapter.export_wiki()
         assert "arch/overview.md" in wiki

@@ -41,6 +41,8 @@ class WikiAdapter(ABC):
 
         Config schema is adapter-defined; document it in your adapter's README.
         """
+        super().__init__()
+        _ = config  # Subclasses read adapter-specific keys from *config*.
 
     def describe(self) -> dict[str, Any]:
         """Return adapter metadata written into ``RunEnvironment``.
@@ -88,3 +90,4 @@ class WikiAdapter(ABC):
 
     def teardown(self) -> None:
         """Release resources (close processes, clear caches, etc.)."""
+        return

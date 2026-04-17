@@ -13,7 +13,10 @@ console = Console()
 
 @app.command("generate")
 def generate(
-    domain: Annotated[str, typer.Option("--domain", "-d", help="Domain id or alias (e.g. saas, saas_engineering).")],
+    domain: Annotated[
+        str,
+        typer.Option("--domain", "-d", help="Domain id or alias (e.g. saas, saas_engineering)."),
+    ],
     n_docs: Annotated[int, typer.Option("--n-docs", help="Number of documents to generate.")] = 50,
     out: Annotated[str, typer.Option("--out", "-o", help="Output directory.")] = "./corpus-out",
     seed: Annotated[int, typer.Option(help="Random seed (noise / filler injection).")] = 42,
@@ -67,7 +70,9 @@ def verify(
     if result.ok:
         console.print(f"[green]PASS[/green] Corpus at [bold]{path}[/bold] passed all checks.")
     else:
-        console.print(f"[red]FAIL[/red] Corpus at [bold]{path}[/bold] has {len(result.errors)} error(s).")
+        console.print(
+            f"[red]FAIL[/red] Corpus at [bold]{path}[/bold] has {len(result.errors)} error(s)."
+        )
         raise typer.Exit(code=1)
 
 
@@ -76,7 +81,6 @@ def info(
     path: Annotated[str, typer.Argument(help="Path to corpus directory.")],
 ) -> None:
     """Show a summary of a corpus (documents, ground truth counts, metadata)."""
-    import sys
 
     from wikibench.corpora.__main__ import main
 

@@ -22,7 +22,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from typing import Any
+from typing import Any, cast
 
 from wikibench.adapters._base import WikiAdapter
 from wikibench.models.document import Document
@@ -68,7 +68,7 @@ class NaiveAdapter(WikiAdapter):
 
     def __init__(self, config: dict[str, Any]) -> None:
         self.model: str = config.get("model", "gemini/gemini-2.5-flash")
-        self.max_tokens: int | None = config.get("max_tokens", None)
+        self.max_tokens: int | None = config.get("max_tokens")
         self.temperature: float = float(config.get("temperature", 0.0))
         self.timeout_s: float = float(config.get("timeout_s", 120.0))
 
@@ -157,6 +157,7 @@ class NaiveAdapter(WikiAdapter):
 
 # ── Prompt construction ───────────────────────────────────────────────────────
 
+
 def _build_messages(query: Query, context: str) -> list[dict[str, str]]:
     """Build the OpenAI-format messages list for a query."""
     system_content = f"{_SYSTEM_PROMPT}\n\n## Knowledge Base\n\n{context}"
@@ -180,6 +181,7 @@ def _build_messages(query: Query, context: str) -> list[dict[str, str]]:
 
 
 # ── Response parsing ──────────────────────────────────────────────────────────
+
 
 def _parse_response(query: Query, raw: str) -> QueryResponse:
     """Parse the raw LLM output into a structured QueryResponse."""
@@ -215,7 +217,7 @@ def _extract_json(text: str) -> dict[str, Any]:
         stripped = inner.strip()
 
     try:
-        return json.loads(stripped)  # type: ignore[return-value]
+        return cast("dict[str, Any]", json.loads(stripped))
     except json.JSONDecodeError:
         pass
 
@@ -230,7 +232,7 @@ def _extract_json(text: str) -> dict[str, Any]:
                 depth -= 1
                 if depth == 0:
                     try:
-                        return json.loads(stripped[start : i + 1])  # type: ignore[return-value]
+                        return cast("dict[str, Any]", json.loads(stripped[start : i + 1]))
                     except json.JSONDecodeError:
                         break
 

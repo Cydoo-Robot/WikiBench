@@ -174,7 +174,7 @@ WikiBench 是第一个系统性回答这些问题的评测框架。
 
 **对比 WikiBench 的差异**
 
-|      | WikiBench | WikiBench    |
+|      | WikiBench | WikiBench(Probe版本)    |
 | ---- | --------- | ------------ |
 | 感觉   | 开源社区跑分工具  | 企业生产诊断框架     |
 | 使用场景 | 一次性对比测评   | 持续集成 + 长期监控  |
