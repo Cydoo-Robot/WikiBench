@@ -5,5 +5,8 @@
 .env.local
 *.env
 .wikibench-cache/
+# diskcache SQLite DB (names vary by version / config)
+.wikibench-cache/cache.db
+.wikibench-cache/.cache.db
 .wikibench-results/
 .wikibench-sandboxes/
