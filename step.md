@@ -78,3 +78,4 @@
 - [完成] 新增 tests/unit/test_reporters.py（29 个测试，覆盖 json/markdown/console/ResultStore/dispatch）
 - [完成] 冒烟验证：wikibench run --impl naive --corpus .../tiny --output .wikibench-results 全流程可用，report list/show 正常渲染
 - [完成] 周末验证：164 passed, 4 skipped
+- [完成] `.gitignore` 增加 `.wikibench-cache/`、`.wikibench-results/`（本地缓存与评测输出不入库）
