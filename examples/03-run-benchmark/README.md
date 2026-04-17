@@ -1,6 +1,6 @@
-# 示例 3 · 运行评测（Naive 适配器）
+# 示例 3 · 运行评测（内置基线适配器）
 
-对 **synthetic-tiny** 运行默认任务（T1/T2/T3），使用内置 **`naive`** 适配器。
+对 **synthetic-tiny** 运行默认任务（T1/T2/T3）。内置基线可二选一：**`naive`**（全文上下文）或 **`simple_summary`**（ingest 阶段按篇摘要后再问答）。
 
 ## A · 无 API 费用（Mock LLM，适合 CI / 本地冒烟）
 
@@ -19,6 +19,8 @@ Remove-Item Env:WIKIBENCH_LLM_MOCK
 ```bash
 WIKIBENCH_LLM_MOCK=1 uv run wikibench run --impl naive --corpus corpora/synthetic/tiny --quiet --format console
 ```
+
+可将 `--impl naive` 换成 `--impl simple_summary`（ingest 阶段对每个文档各调用一次 LLM 生成摘要；mock 下仍无网络费用）。
 
 ## B · 真实 LLM（需配置 LiteLLM 支持的提供商与密钥）
 

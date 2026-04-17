@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import time
 from typing import Any
 
 from wikibench.models.corpus import Corpus
 from wikibench.models.result import BenchmarkResult, TaskResult
-from wikibench.runtime.cache import ResponseCache, get_default_cache
+from wikibench.runtime.cache import ResponseCache
 from wikibench.runtime.cost import CostTracker
 
 log = logging.getLogger(__name__)
@@ -130,10 +131,8 @@ class Runner:
 
         finally:
             # ── 8. Teardown ───────────────────────────────────────────────────
-            try:
+            with contextlib.suppress(Exception):
                 adapter.teardown()
-            except Exception:
-                pass
             CostTracker.uninstall()
 
         # ── 7. Assemble result ────────────────────────────────────────────────
@@ -192,9 +191,22 @@ class Runner:
         if isinstance(spec, type) and issubclass(spec, WikiAdapter):
             return spec(self.adapter_config)
 
-        # A string name — look up via entry_points
+        # A string: ``"entry_point_name"`` or ``"module.path:ClassName"`` (same as CLI).
         if isinstance(spec, str):
+            if ":" in spec:
+                module_path, cls_name = spec.rsplit(":", 1)
+                if module_path and cls_name:
+                    import importlib
+
+                    mod = importlib.import_module(module_path)
+                    cls = getattr(mod, cls_name, None)
+                    if isinstance(cls, type) and issubclass(cls, WikiAdapter):
+                        return cls(self.adapter_config)
+                    raise TypeError(
+                        f"Adapter spec {spec!r} must name a WikiAdapter subclass; got {cls!r}"
+                    )
             from wikibench.adapters.registry import get_adapter
+
             cls = get_adapter(spec)
             return cls(self.adapter_config)
 

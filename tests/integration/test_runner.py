@@ -158,3 +158,13 @@ class TestRunnerRun:
         ).run()
         assert len(result.per_task) == 3
         assert result.metrics  # at least some metrics populated
+
+    def test_module_colon_class_adapter_spec(self, tiny_corpus: Corpus) -> None:
+        """Runner accepts the same ``module:Class`` string as the CLI."""
+        result = Runner(
+            adapter_spec="wikibench.adapters.builtin.simple_summary:SimpleSummaryAdapter",
+            corpus=tiny_corpus,
+            tasks=["knowledge_fidelity"],
+        ).run()
+        assert "simple_summary" in result.impl
+        assert result.ingest.llm_calls == len(tiny_corpus.documents)

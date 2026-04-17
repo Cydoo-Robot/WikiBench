@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`SimpleSummaryAdapter`**: per-document LLM summaries at ingest; queries use the summary bundle (second built-in baseline alongside `NaiveAdapter`).
+- **`Runner`**: accepts `adapter_spec="module.path:ClassName"` strings (same as CLI), not only entry-point names or classes.
 - **Examples** (`examples/`): four walkthroughs — corpus verify, synthetic generation, benchmark run (mock / real LLM), persisted results + SQLite + `wikibench report`.
 - **HTML reports** via `reporters/html` and `ResultStore` (`report.html`).
 - **SQLite result store** (`BenchmarkSqliteStore`) and `wikibench run --sqlite`.

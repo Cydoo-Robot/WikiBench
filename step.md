@@ -118,3 +118,4 @@
 - [完成] 新增 `Doc/10-测试说明书.md`（运行命令、分层、marker、LLM mock、skip 说明）；`Doc/README.md` 导航增加第 10 条
 - [完成] MVP 封版准备（P0）：新增 `examples/` 四步示例（语料校验、合成语料、run mock/真 LLM、结果+SQLite+report）；`CHANGELOG.md`；版本升至 `0.2.0-alpha`；扩展根 `README.md`；`README_cn.md` 增加快速开始链接；`.gitignore` 增加 `demo` 缓存/结果目录；`Doc/10` 链到 `examples`
 - [完成] `tests/e2e/test_full_run.py`：`CliRunner(mix_stderr=False)`；`--impl` 改为 `wikibench.adapters.builtin.naive:NaiveAdapter`（不依赖 entry points）；`test_version` 断言随 `0.2.0-alpha` 更新
+- [完成] `SimpleSummaryAdapter`：ingest 按篇 `llm_call` 摘要、query 复用 naive 的 `_build_messages`/`_parse_response`；默认模型与 Naive 对齐（`gemini-2.5-flash`）；`Runner._resolve_adapter` 支持 `module:Class` 字符串；`test_simple_summary_adapter` + `test_runner` 集成用例；`runner.py` teardown 用 `contextlib.suppress`；`examples/03` 补充 `simple_summary`；`CHANGELOG` 更新
