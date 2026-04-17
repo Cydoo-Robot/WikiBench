@@ -120,7 +120,7 @@ addopts = "-ra -q --tb=short"
 markers = [
     "unit: fast, no I/O",
     "integration: may do local I/O but no LLM calls",
-    "e2e: full pipeline, requires LLM credentials",
+    "e2e: full CLI pipeline (tests use WIKIBENCH_LLM_MOCK; no network)",
     "slow: takes > 30s",
 ]
 

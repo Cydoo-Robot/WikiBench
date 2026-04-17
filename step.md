@@ -113,3 +113,4 @@
 - [完成] `cli/report.py`：`show` 支持从 `.db` 加载（需 `--run-id`）、`--format html`；只读加载时使用 `write_html=False`
 - [完成] 单测：`test_reporters` 覆盖 HTML 与 `report.html`；新增 `test_sqlite_store`
 - [完成] `cli/run.py`：`TYPE_CHECKING` 导入 `BenchmarkResult`、`_print_report(report_format=...)` 消除 A002/TC001
+- [完成] `tests/e2e/test_full_run.py`：启用端到端（`WIKIBENCH_LLM_MOCK=1`，无网络/API）；覆盖 `wikibench run` → `result.json`/`report.md`/`report.html` + SQLite + `report show`/`list`；`pyproject.toml` 中 `e2e` marker 说明同步
