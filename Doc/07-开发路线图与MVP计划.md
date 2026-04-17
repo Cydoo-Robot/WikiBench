@@ -12,19 +12,18 @@
 
 ```
  时间轴 ──────────────────────────────────────────────────────▶
-        │         │              │            │           │
-     Phase 0    Phase 1        Phase 1.5    Phase 2     Phase 3
-     筹备       MVP            扩展          企业版       生态
-    (1-2周)    (4-6周)        (2-3月)       (6月+)       (长期)
+        │         │              │            │
+     Phase 0    Phase 1        Phase 1.5    Phase 2
+     筹备       MVP            扩展          生态完善
+    (1-2周)    (4-6周)        (2-3月)       (长期持续)
 ```
 
 | Phase | 时长 | 核心目标 | 关键交付 |
 |-------|------|---------|---------|
 | **0 · 筹备** | 1–2 周 | 定稿设计，搭脚手架 | 仓库骨架、CI、Doc 定稿、v0.1.0-alpha |
 | **1 · MVP** | 4–6 周 | 端到端跑通最小闭环 | synthetic 生成器、3 任务、CLI、HTML 报告、v0.2.0 |
-| **1.5 · 扩展** | 2–3 月 | 覆盖主要实现 + 数据集 | 5+ 适配器、small corpus、grounding/incremental、v0.5.0 |
-| **2 · 企业版** | 6 月+ | WikiBench + Leaderboard | 监控、CI Action、公开榜单、v1.0.0 |
-| **3 · 生态** | 长期 | 成为事实标准 | 论文引用、2+ 下游工具集成、多语言 |
+| **1.5 · 扩展** | 2–3 月 | 覆盖主流实现 + 丰富数据集 | 5+ 适配器、small corpus、grounding/incremental、v0.5.0 |
+| **2 · 生态完善** | 长期持续 | 推广 WikiBench、吸纳社区反馈、持续完善框架 | 动态 leaderboard、多语言 corpus、学术影响力、v1.0.0+ |
 
 ---
 
@@ -178,92 +177,203 @@ wikibench run --impl reference --corpus ./my-corpus
 
 ### 4.1 目标
 
-- 覆盖 **至少 5 个主流实现**的 adapter
+- 覆盖 **至少 5 个主流实现**的 adapter，**优先接入两个最高影响力工具**：
+  - `llm-wiki-compiler`（atomicmemory，536★，TypeScript CLI，性能标杆）
+  - `obsidian-wiki`（Ar9av，409★，代理驱动技能框架，最受 Obsidian 社区关注）
 - 提供 **small 真实语料库**（500+ docs）
 - 引入 **增量更新**、**grounding**、**观点综合** 任务
 - 搭建论坛数据爬取 pipeline（HN + SO）
 
-### 4.2 重要任务
+### 4.2 目标 Adapter 详细调研
 
-| 任务 | 产出 |
+#### A · llm-wiki-compiler（atomicmemory/llm-wiki-compiler，536★）
+
+> **定位**：号称性能最好的 LLM Wiki 编译器，灵感直接来源于 Karpathy 原始模式。
+
+| 属性 | 说明 |
 |------|------|
-| 接入 ussumant / Ar9av / AgriciDaniel / claude-obsidian | `wikibench-adapter-*` 5+ 个包 |
-| 标注 small corpus（k8s 500+ / react 500+） | `corpora/small-*` 2+ 个，规模 500+ docs |
-| **HN Fetcher 爬虫**（Phase 1.5 Week 1） | `corpora/crawlers/hackernews.py` |
-| **SO XML Parser**（Phase 1.5 Week 2） | `corpora/crawlers/stackoverflow.py` |
-| **Ground Truth Annotator**（立场聚类 pipeline） | `opinion_map.jsonl` 自动生成 |
-| **medium corpus 打包**（2000+ docs，含论坛数据） | `corpora/medium-tech-forum/` |
-| Grounding 任务实现 | T4 落地 |
-| **Opinion Synthesis 任务**（T5） | 依赖 forum corpus |
-| Incremental Update 任务 | M1 落地 |
-| Staleness Detection 任务 | M2 落地 |
-| `wikibench verify-adapter` 契约测试 | 自动化接入验证 |
-| 首个社区 leaderboard（静态） | GitHub Pages，手动更新 |
-| 文档站正式上线 | docs.wikibench.dev |
+| 语言 | TypeScript / Node.js（`npm install -g llm-wiki-compiler`） |
+| API | CLI：`llmwiki ingest`、`llmwiki compile`、`llmwiki query` |
+| LLM 支持 | Anthropic（默认）、OpenAI、Ollama（通过 `LLMWIKI_PROVIDER` 切换） |
+| 增量机制 | SHA-256 hash 检测，仅重编译变更的 source |
+| 输出结构 | `wiki/concepts/*.md`（YAML frontmatter + wikilinks）、`wiki/queries/`、`wiki/index.md` |
+| MCP 集成 | 内置 MCP Server（`llmwiki serve`），提供 `compile_wiki`、`query_wiki`、`search_pages` 等工具 |
+| 依赖 | Node.js >= 18 + API Key（Anthropic 或 OpenAI） |
 
-### 4.3 爬虫子阶段排期（Phase 1.5 内）
+**WikiBench 接入方案**：`subprocess` 调用 CLI，惰性检测 `llmwiki` 是否已安装。
+
+```
+ingest(docs)
+  ├── 写 docs → sources/ 目录
+  ├── 逐文件 llmwiki ingest <file>
+  └── llmwiki compile（两阶段：概念提取 → 页面生成）
+
+query(query)
+  └── llmwiki query "<text>"，解析 stdout
+```
+
+适配器路径：`src/wikibench/adapters/community/llm_wiki_compiler.py`
+
+#### B · obsidian-wiki（Ar9av/obsidian-wiki，409★）
+
+> **定位**：代理驱动的技能框架（Skill-based Agent Framework），最受 Obsidian 社区欢迎。
+
+| 属性 | 说明 |
+|------|------|
+| 语言 | Markdown skill files（无独立 Python/TS 运行时，代理即 LLM） |
+| API | 无可编程 API；技能文件（`.skills/`）指导 AI agent 操作 vault |
+| Vault 结构 | `concepts/`、`entities/`、`skills/`、`references/`、`synthesis/`、`journal/`、`projects/` |
+| 跟踪机制 | `.manifest.json`（delta 摄入 + 来源溯源） |
+| LLM 支持 | 任意代理（Claude Code、Cursor、Windsurf 等），不绑定特定 LLM |
+| 依赖 | Python 3.11+（vault 读写）+ 外部 AI agent 执行技能 |
+
+**WikiBench 接入方案**：在 Python 中**复现**其 vault 编译模式（不依赖外部代理），使用 WikiBench 的 `llm_call` 运行时驱动编译。
+
+```
+ingest(docs)
+  ├── LLM 对每文档提取概念 + 实体
+  ├── 按 obsidian-wiki vault 目录层次生成 markdown 页（含 wikilinks）
+  └── 构建内存 manifest + 概念索引
+
+query(query)
+  ├── 按关键词/embedding 检索相关 vault 页
+  └── LLM 综合相关页面，输出带 citation 的答案
+```
+
+适配器路径：`src/wikibench/adapters/community/obsidian_wiki.py`
+
+#### C · 待定（Phase 1.5 后期）
+
+| 工具 | 说明 | 优先级 |
+|------|------|--------|
+| obsidian-llm-wiki（kytmanov） | PyPI 包，Ollama 本地 LLM，`olw compile/query` | 中 |
+| klore / vbarsoum1 | Python，OpenRouter，支持所有代理 | 低 |
+| ussumant/llm-wiki-compiler | Claude Code plugin，`/wiki-compile` slash cmd | 参考 |
+
+### 4.3 重要任务
+
+| 任务 | 产出 | 优先级 |
+|------|------|--------|
+| **`LLMWikiCompilerAdapter`**（subprocess，atomicmemory） | `adapters/community/llm_wiki_compiler.py` | 🔴 P0 |
+| **`ObsidianWikiAdapter`**（vault 模式复现） | `adapters/community/obsidian_wiki.py` | 🔴 P0 |
+| `wikibench verify-adapter` 契约测试框架 | 自动化接入验证，支持社区提交 | 🟠 P1 |
+| `SimpleSummaryAdapter` + `ReferenceWikiAdapter` 完整实现 | 内置基线补全 | 🟠 P1 |
+| 标注 small corpus（k8s 500+ / react 500+） | `corpora/small-*` 2+ 个，规模 500+ docs | 🟠 P1 |
+| **HN Fetcher 爬虫** | `corpora/crawlers/hackernews.py` | 🟡 P2 |
+| **SO XML Parser** | `corpora/crawlers/stackoverflow.py` | 🟡 P2 |
+| **Ground Truth Annotator** | `opinion_map.jsonl` 自动生成 | 🟡 P2 |
+| **medium corpus 打包**（2000+ docs） | `corpora/medium-tech-forum/` | 🟡 P2 |
+| Grounding 任务实现 | T4 落地 | 🟡 P2 |
+| **Opinion Synthesis 任务**（T5） | 依赖 forum corpus | 🟢 P3 |
+| Incremental Update 任务 | M1 落地 | 🟢 P3 |
+| Staleness Detection 任务 | M2 落地 | 🟢 P3 |
+| 首个社区 leaderboard（静态） | GitHub Pages，手动更新 | 🟢 P3 |
+| 文档站正式上线 | docs.wikibench.dev | 🟢 P3 |
+
+### 4.4 爬虫子阶段排期（Phase 1.5 内）
 
 | 周次 | 任务 | 交付 |
 |------|------|------|
-| 1.5-W1 | HN Fetcher + 数据清洗 | 可采集 HN Ask HN，输出 ForumThread JSON |
-| 1.5-W2 | SO XML Parser | 从 Data Dump 提取 5 个标签的 QA |
-| 1.5-W3 | Stance Clustering Pipeline | opinion_map.jsonl 自动生成，人工抽查 |
-| 1.5-W4 | medium corpus 打包 + T5 任务集成测试 | `wikibench run --task opinion_synthesis` 跑通 |
-| 1.5-W5-6 | Reddit PRAW + V2EX Scrapy | 补充中文 / 更多英文数据 |
+| 1.5-W1 | **LLMWikiCompilerAdapter** + ObsidianWikiAdapter 实现 + 契约测试 | 两个社区 adapter 跑通，verify-adapter 绿 |
+| 1.5-W2 | SimpleSummary + Reference 实现 + small corpus（k8s 500）| 4 个 adapter 可在同一 corpus 横向对比 |
+| 1.5-W3 | HN Fetcher + 数据清洗 | 可采集 HN Ask HN，输出 ForumThread JSON |
+| 1.5-W4 | SO XML Parser | 从 Data Dump 提取 5 个标签的 QA |
+| 1.5-W5 | Stance Clustering Pipeline + T5 ground truth | opinion_map.jsonl 自动生成，人工抽查 |
+| 1.5-W6 | medium corpus 打包 + T5 任务集成测试 | `wikibench run --task opinion_synthesis` 跑通 |
+| 1.5-W7-8 | Reddit PRAW + V2EX Scrapy + leaderboard 静态版 | 补充中文数据，leaderboard 上线 |
 
-### 4.4 里程碑：v0.5.0
+### 4.5 里程碑：v0.5.0
 
 退出条件：
-- 5 个外部 adapter 跑通并在 leaderboard 显示
+- **llm-wiki-compiler + obsidian-wiki** 两个社区 adapter 跑通，进入 leaderboard
+- 共 5 个 adapter 可对比（naive + simple_summary + reference + llm_wiki_compiler + obsidian_wiki）
 - 3 个 corpus tier（synthetic / small-500 / medium-2000）
 - T5 Opinion Synthesis 任务跑通（至少 HN corpus）
 - 引用到至少 1 篇研究论文 / 博客
 
 ---
 
-## 5. Phase 2 · 企业版 WikiBench（Month 4 ~ 12）
+## 5. Phase 2 · 生态完善（长期持续）
+
+> **定调**：不考虑商业化。核心目标是把 WikiBench 推广出去，形成社区正向反馈闭环，让 LLM Wiki 评测成为领域事实标准。
 
 ### 5.1 目标
 
-从"社区跑分"升级到"企业可信诊断"；同时构建 Large corpus（50000+）。
-
-### 5.2 关键交付
-
-| 模块 | 说明 |
+| 方向 | 说明 |
 |------|------|
-| `WikiBench probe` | 一键健康检查 CLI，针对用户自有语料 |
-| `WikiBench monitor` | 长期监控模式，定期跑 + 存趋势 |
-| GitHub Action `WikiBench-action@v1` | CI 集成模板 |
-| **Large corpus（50000+ docs）** | 基于 HN + SO + Reddit 全量爬取，含 T5 ground truth |
-| 对抗性 corpus | 专门诱发幻觉的测试集 |
-| Coverage Calibration (M3) | adapter 自评准确性校验 |
-| 动态 leaderboard | Next.js + 数据库，支持筛选 / 版本对比 |
+| **推广** | 让更多 LLM Wiki 实现者知道 WikiBench，并愿意用它衡量自己的工具 |
+| **社区反馈** | 收集真实用户（研究者、工具作者、工程团队）对评测任务、corpus、指标的意见，快速迭代 |
+| **框架完善** | 根据反馈修补设计缺陷、补充新任务、扩大 corpus 覆盖、提升报告可读性 |
+| **影响力** | 进入学术视野，被引用、被讨论，吸引社区贡献 adapter 和 corpus |
 
-### 5.3 商业模式探索（非强制）
+### 5.2 推广策略
 
-- 保持核心开源；可能提供：
-  - 托管评测服务（SaaS）
-  - 定制 corpus 构建
-  - 私有部署企业支持
+#### 5.2.1 首发触达（v0.2.0 发布时）
 
-明确：**不会在社区版塞专有依赖**，不会 core-shell 模式。
+- 在 [Karpathy 原始 LLM Wiki Gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) 评论区 **低调回复**，附 WikiBench 链接和一张对比截图
+- 在 llm-wiki-compiler / obsidian-wiki 两个 repo 的 Discussions 或 Issue 里友好告知：「WikiBench 已支持对你的工具进行标准化评测」
+- 发一篇 **dev log 博文**（GitHub Pages 或 dev.to），重点讲 synthetic corpus 设计 + T1/T2/T3 任务原理，不推销
 
-### 5.4 里程碑：v1.0.0
+#### 5.2.2 持续曝光
 
-退出条件：
-- 至少 2 家企业公开使用 WikiBench
-- 动态 leaderboard 每周自动刷新
-- 总用户数（下载 / star / adapter 作者）达到 "实质标准" 门槛
+- 每个 adapter 跑通后发一条简短帖子（HN、X/Twitter、Reddit r/MachineLearning）：只贴数字和方法，不夸大
+- 维护一份公开 `ADAPTERS.md`，列出所有已测实现的分数，保持透明
+- 接受社区 PR 贡献新 adapter（见 `CONTRIBUTING.md` 接入流程）
 
----
+#### 5.2.3 学术方向
 
-## 6. Phase 3 · 生态（长期）
+- 准备一份 2–4 页的技术报告（arXiv / ACL Findings 方向），重点讲评测框架设计
+- 向 NeurIPS / ICLR Datasets & Benchmarks 投稿（中长期）
 
-- [ ] 多语言支持扩展到 3+ 语言 corpus
-- [ ] 与 Hugging Face / Papers with Code 联动
-- [ ] 被 LangChain / LlamaIndex / LangGraph 等原生集成
-- [ ] 年度 LLM Wiki 质量报告（类似 MLPerf 年报）
-- [ ] 学术会议 workshop
+### 5.3 社区反馈闭环
+
+```
+用户遇到问题 / 提出改进
+        │
+        ▼
+GitHub Issue / Discussion（模板引导：任务设计 / corpus 质量 / adapter 接入 / 报告可读性）
+        │
+        ▼
+Triage（每周一次）：
+  - 高频需求 → 进入下个迭代
+  - 设计缺陷 → 优先 hotfix
+  - 新 corpus/task 提案 → 评估合入标准
+        │
+        ▼
+发版 CHANGELOG（清晰写明「基于 issue #X 的改进」）
+```
+
+**反馈优先处理区域**（预判高频问题）：
+- 评测任务覆盖不足（如缺乏 Grounding、Incremental 任务）
+- Corpus 领域偏差（当前只有 SaaS / Clinical，缺 k8s / react / 金融 / 中文）
+- adapter 接入门槛高（`verify-adapter` 自检不够友好）
+- 报告可读性（图表、对比视图）
+
+### 5.4 框架持续完善路线
+
+| 阶段 | 触发条件 | 主要工作 |
+|------|---------|---------|
+| **v0.5.0 → v0.7.0** | 第一批社区反馈到位 | 补全 T4 Grounding + M1 Incremental；改进 adapter 接入文档；引入 embedding 检索（ObsidianWikiAdapter） |
+| **v0.7.0 → v1.0.0** | 5+ adapter 稳定，corpus 覆盖 3 tier | 动态 leaderboard 上线；Large corpus（50000+ docs）；Coverage Calibration (M3)；多语言 corpus（中文优先） |
+| **v1.0.0+** | 有研究者复现 / 引用 | 年度 LLM Wiki 质量报告；对接 Hugging Face Datasets / Papers with Code；GitHub Action `wikibench-action@v1` |
+
+### 5.5 基础设施
+
+| 项目 | 方案 |
+|------|------|
+| Leaderboard（静态 v0.5） | GitHub Pages，手动更新 markdown 表格 |
+| Leaderboard（动态 v1.0） | Next.js + JSON / SQLite，支持筛选 / 版本对比，自动 PR 触发刷新 |
+| CI 集成 | GitHub Action `wikibench-action@v1`（用户在自己 repo 引用） |
+| 长期监控 | `wikibench monitor` CLI（定期跑 + 趋势存储，配合 SQLite） |
+| 对抗性 corpus | 专门诱发幻觉的测试集（Phase 2 中期引入） |
+
+### 5.6 里程碑
+
+| 版本 | 核心退出条件 |
+|------|------------|
+| **v0.5.0** | 5 adapter 可对比；3 corpus tier；leaderboard 静态版上线；T5 跑通 |
+| **v1.0.0** | 动态 leaderboard；Large corpus；至少 1 篇学术引用或技术博文被社区转发 |
+| **v1.x（持续）** | 每季度有社区贡献的新 adapter 或 corpus；年度 LLM Wiki 质量报告发布 |
 
 ---
 
@@ -286,5 +396,9 @@ wikibench run --impl reference --corpus ./my-corpus
 ## 9. 未决议题
 
 - [ ] **MVP 目标窗口**：6 周是否够？可根据 Cursor 辅助速度动态调整
-- [ ] **第一个外部 adapter 对接时机**：自己的三个基线跑通后再主动联系 ussumant / Ar9av
-- [ ] **Launch 时机**：Phase 0 结束就可以低调公开 repo + Doc；MVP 完成再正式 launch
+- [ ] **LLMWikiCompilerAdapter 的 Node.js 依赖**：是否在 CI 中安装 Node.js？建议 CI 跳过该 adapter，本地开发时手动安装
+- [ ] **ObsidianWikiAdapter embedding 检索**：vault 页面检索是用 keyword BM25 还是向量相似度？MVP 先用关键词，1.5 引入 embedding
+- [ ] **第一个外部 adapter 对接时机**：`llm-wiki-compiler` 有公开 CLI，可直接接入无需联系作者；`obsidian-wiki` 也是开源框架，直接复现模式即可
+- [ ] **推广节奏**：什么时候主动在 HN / Reddit 发布？建议等 v0.5.0 两个社区 adapter 跑通后，数字更有说服力
+- [ ] **社区 Discussion 平台**：GitHub Discussions 够用还是需要 Discord？初期 Discussions 即可，有实质用户量再迁 Discord
+- [ ] **语言优先级**：中文 corpus 在 v0.7.0 还是 v1.0.0 引入？取决于是否有中文 LLM Wiki 实现者参与

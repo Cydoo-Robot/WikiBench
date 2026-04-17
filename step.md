@@ -93,3 +93,10 @@
 - [完成] `pyproject.toml`：对 `corpora/synthetic/**/*.py` 忽略 TC001/TC003（运行时导入与 TCH 规则冲突）
 - [完成] 重写 `tests/unit/test_synthetic_generator.py`（10 个测试，覆盖确定性、pipeline、单文档无矛盾、use_llm）
 - [完成] 周末验证：174 passed, 3 skipped；`wikibench corpus generate --domain saas --n-docs 3` 冒烟通过
+
+## 2026-04-17 规划更新 — Phase 1.5 adapter 优先级
+
+- [完成] 调研 llm-wiki-compiler（atomicmemory，536★）：TypeScript CLI，`llmwiki ingest/compile/query`，两阶段编译，SHA-256 增量，MCP Server，支持 Anthropic/OpenAI/Ollama
+- [完成] 调研 obsidian-wiki（Ar9av，409★）：代理技能框架，vault 层次结构（concepts/entities/skills...），`.manifest.json` delta 跟踪，无独立 Python API
+- [完成] 更新 `Doc/07-开发路线图与MVP计划.md`：Phase 1.5 新增 §4.2 两工具详细技术对照表 + 接入方案；§4.3 任务按 P0/P1/P2/P3 排优先级；§4.4 排期调整（W1 先出两个社区 adapter）；§4.5 里程碑更新；§9 补充未决议题
+- [完成] 重写 Phase 2 & 3：合并为「Phase 2 · 生态完善」，去掉商业化，聚焦推广 + 社区反馈闭环 + 框架持续完善；新增推广策略（首发触达 / 持续曝光 / 学术方向）、反馈闭环流程、按版本分阶段的完善路线（v0.5→v0.7→v1.0→v1.x）、leaderboard 基础设施规划
