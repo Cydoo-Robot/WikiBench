@@ -28,3 +28,26 @@
 - [完成] 创建 wikibench.yaml 默认配置（LLM/cache/runner/cost/storage/logging 各节）
 - [完成] uv sync 安装成功，wikibench --version 输出 0.1.0-alpha，所有单元测试绿色
 - [完成] 创建 Cursor 规则 `.cursor/rules/python-uv-env.mdc`，强制使用 uv 管理 Python 依赖环境
+
+## 2026-04-17 Phase 1 Week 1 — Corpus 加载链路
+
+- [完成] 实现 corpora/loader.py：递归加载 docs/*.md + ground_truth/*.jsonl → Corpus 对象
+- [完成] 实现 corpora/manifest.py：load_manifest（YAML 解析 + pydantic 校验）+ verify_corpus_dir（完整性检查）
+- [完成] 实现 corpora/__main__.py：python -m wikibench.corpora <path> 输出 Rich 摘要表格
+- [完成] 实现 cli/corpus.py：wikibench corpus verify + wikibench corpus info（调用 loader）
+- [完成] 补全 tests/unit/test_corpus_models.py（10 个单元测试）
+- [完成] 补全 tests/integration/test_corpus_loader.py（23 个集成测试，覆盖正常路径 + 错误路径）
+- [完成] 修复 Windows GBK 编码问题（Rich 输出改用 ASCII 标记）
+- [完成] 周末验证：python -m wikibench.corpora corpora/synthetic/tiny 输出 5 docs / 10 QA / 4 claims / 2 contradictions；51 passed, 4 skipped
+
+## 2026-04-17 Phase 1 Week 2 — Runtime 基础设施 + NaiveAdapter 完整实现
+
+- [完成] 实现 runtime/token_counter.py：tiktoken（o200k_base/cl100k_base）+ 字符估算 fallback，支持 messages 整体计数
+- [完成] 实现 runtime/cost.py：CostTracker（线程本地单例）+ 按 purpose 分桶 + hard_limit 强制中止 + 离线价格表 fallback
+- [完成] 实现 runtime/cache.py：ResponseCache（diskcache）+ SHA-256 content-hash key + TTL + 全局单例 + 测试重置工具
+- [完成] 实现 runtime/timeout.py：跨平台超时 context manager（Unix SIGALRM / Windows daemon thread + async exc 注入）
+- [完成] 实现 runtime/llm.py：litellm 统一入口，集成缓存/计费/超时/mock 模式（WIKIBENCH_LLM_MOCK=1）
+- [完成] 升级 NaiveAdapter：system prompt 架构、按 intent 分支构建 messages、JSON 提取 + markdown fence 剥离、ingest 无 LLM 调用
+- [完成] 新增单元测试：test_token_counter / test_cost / test_cache / test_llm / test_naive_adapter，共 52 新测试
+- [完成] 修复 Windows timeout yield-from bug
+- [完成] 周末验证：103 passed, 4 skipped；NaiveAdapter.ingest(docs).query(q) 在 mock 模式下返回合理响应

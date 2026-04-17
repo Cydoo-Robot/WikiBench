@@ -3,10 +3,13 @@
 # e.g. WIKIBENCH__LLM__DEFAULT_MODEL=gpt-4o
 
 llm:
-  default_model: gpt-4o-mini
-  judge_model: gpt-4o
-  # api_key: ""           # reads from OPENAI_API_KEY / ANTHROPIC_API_KEY etc.
-  # base_url: ""          # override for Azure / local endpoints
+  default_model: gemini/gemini-2.5-flash
+  judge_model: gemini/gemini-2.5-flash
+  # api_key: ""           # reads from GEMINI_API_KEY / OPENAI_API_KEY etc.
+  # Gemini 2.5 Flash has thinking enabled by default; disable for lower latency/cost
+  extra_kwargs:
+    thinking:
+      type: disabled
 
 cache:
   enabled: true
