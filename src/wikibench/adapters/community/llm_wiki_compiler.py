@@ -1,10 +1,16 @@
 """Community adapter: atomicmemory/llm-wiki-compiler via ``llmwiki`` CLI (subprocess).
 
-Requires Node.js + globally or PATH-resolvable ``llmwiki``, provider credentials for
+Requires Node.js + ``llmwiki`` (global or from a sandbox clone), provider credentials for
 ``compile`` / ``query``, and **must not** run under ``WIKIBENCH_LLM_MOCK=1`` (the
 upstream tool performs real LLM calls).
 
-See ``Doc/07`` §4.2 A and ``sandbox.py`` for clone layout.
+See ``Doc/07`` §4.2 A and ``llm_wiki_sandbox.py`` for sandbox layout.
+
+Config keys:
+
+- ``llm_wiki_compiler_root``: path to a clone with ``npm install`` (+ ``npm run build``)
+- ``WIKIBENCH_LLM_WIKI_ROOT`` env: same, if unset in config
+- ``llmwiki_bin``: fallback when no sandbox root (default ``llmwiki`` on PATH)
 """
 
 from __future__ import annotations
@@ -20,6 +26,10 @@ from typing import Any
 
 from wikibench.adapters._base import WikiAdapter
 from wikibench.adapters.builtin.naive import _parse_response
+from wikibench.adapters.community.llm_wiki_sandbox import (
+    default_sandbox_from_env_or_cwd,
+    resolve_llmwiki_invocation,
+)
 from wikibench.adapters.community.query_prompt import build_user_query_text
 from wikibench.adapters.community.sandbox import suggested_clone_path
 from wikibench.models.document import Document
@@ -40,13 +50,41 @@ class LLMWikiCompilerAdapter(WikiAdapter):
 
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
-        self._llmwiki_bin: str = str(config.get("llmwiki_bin", "llmwiki"))
+        self._llmwiki_argv: list[str] = self._resolve_llmwiki_argv(config)
         self._timeout_ingest_s: float = float(config.get("timeout_ingest_s", 600.0))
         self._timeout_query_s: float = float(config.get("timeout_query_s", 180.0))
         raw_project = config.get("project_dir")
         self._project_dir: Path | None = Path(raw_project).resolve() if raw_project else None
         self._own_project_dir = False
         self._model_label = str(config.get("model", _DEFAULT_MODEL_LABEL))
+
+    def _resolve_llmwiki_argv(self, config: dict[str, Any]) -> list[str]:
+        raw = (
+            config.get("llm_wiki_compiler_root")
+            or os.environ.get("WIKIBENCH_LLM_WIKI_ROOT", "").strip()
+            or ""
+        )
+        if not raw:
+            ds = default_sandbox_from_env_or_cwd()
+            if ds is not None:
+                raw = str(ds)
+        if raw:
+            root = Path(str(raw)).expanduser().resolve()
+            inv = resolve_llmwiki_invocation(root)
+            if inv:
+                log.debug("Using llmwiki from sandbox %s -> %s", root, inv)
+                return inv
+            log.warning(
+                "llm_wiki_compiler_root %s has no node_modules/.bin/llmwiki or dist/cli.js; "
+                "run npm install && npm run build in that directory",
+                root,
+            )
+
+        bin_name = str(config.get("llmwiki_bin", "llmwiki"))
+        resolved = shutil.which(bin_name)
+        if resolved:
+            return [resolved]
+        return [bin_name]
 
     def describe(self) -> dict[str, Any]:
         return {
@@ -55,6 +93,7 @@ class LLMWikiCompilerAdapter(WikiAdapter):
             "llm_models": {"adapter_backend": self._model_label},
             "strategy": "llmwiki_cli",
             "upstream_hint": str(suggested_clone_path({}, "llm-wiki-compiler")),
+            "llmwiki_argv": self._llmwiki_argv,
         }
 
     def _reject_mock(self) -> None:
@@ -65,7 +104,8 @@ class LLMWikiCompilerAdapter(WikiAdapter):
             )
             raise RuntimeError(msg)
 
-    def _run(self, args: list[str], *, cwd: Path, timeout: float) -> str:
+    def _run(self, subargs: list[str], *, cwd: Path, timeout: float) -> str:
+        args = self._llmwiki_argv + subargs
         log.debug("Running %s in %s", args, cwd)
         proc = subprocess.run(
             args,
@@ -92,15 +132,14 @@ class LLMWikiCompilerAdapter(WikiAdapter):
 
     def ingest(self, docs: list[Document]) -> IngestResult:
         self._reject_mock()
-        exe = shutil.which(self._llmwiki_bin)
-        if not exe and Path(self._llmwiki_bin).exists():
-            exe = str(Path(self._llmwiki_bin).resolve())
-        if not exe:
+        exe0 = self._llmwiki_argv[0]
+        if not Path(exe0).exists() and shutil.which(exe0) is None and not Path(exe0).suffix:
             raise RuntimeError(
-                f"Cannot find llmwiki executable ({self._llmwiki_bin!r}). "
-                "Install with: npm install -g llm-wiki-compiler"
+                f"Cannot find llmwiki executable ({self._llmwiki_argv!r}). "
+                "Clone atomicmemory/llm-wiki-compiler under .wikibench-sandboxes/llm-wiki-compiler, "
+                "run npm install && npm run build, and set llm_wiki_compiler_root or "
+                "WIKIBENCH_LLM_WIKI_ROOT, or install globally: npm install -g llm-wiki-compiler"
             )
-        self._llmwiki_bin = exe
 
         t0 = time.perf_counter()
         root = self._ensure_project_dir()
@@ -116,14 +155,14 @@ class LLMWikiCompilerAdapter(WikiAdapter):
                 tmp_path = fh.name
             try:
                 self._run(
-                    [self._llmwiki_bin, "ingest", tmp_path],
+                    ["ingest", tmp_path],
                     cwd=root,
                     timeout=self._timeout_ingest_s,
                 )
             finally:
                 Path(tmp_path).unlink(missing_ok=True)
 
-        self._run([self._llmwiki_bin, "compile"], cwd=root, timeout=self._timeout_ingest_s)
+        self._run(["compile"], cwd=root, timeout=self._timeout_ingest_s)
 
         wiki_dir = root / "wiki"
         wiki_tokens = 0
@@ -142,7 +181,7 @@ class LLMWikiCompilerAdapter(WikiAdapter):
                 llm_calls=0,
                 duration_s=duration,
                 wiki_tokens=wiki_tokens,
-                extra={"project_dir": str(root), "llmwiki_bin": self._llmwiki_bin},
+                extra={"project_dir": str(root), "llmwiki_argv": self._llmwiki_argv},
             ),
         )
 
@@ -152,7 +191,7 @@ class LLMWikiCompilerAdapter(WikiAdapter):
             raise RuntimeError("ingest() must run before query().")
         text = build_user_query_text(query)
         raw = self._run(
-            [self._llmwiki_bin, "query", text],
+            ["query", text],
             cwd=self._project_dir,
             timeout=self._timeout_query_s,
         )
