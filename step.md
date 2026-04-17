@@ -123,3 +123,4 @@
 - [完成] `ReferenceWikiAdapter`：ingest 为逐篇摘要 + 全库摘要生成 Markdown 索引；query 与 Naive 一致；`test_reference_wiki_adapter`；`verify`/contract 参数化纳入 `reference_wiki`
 - [完成] 文档对齐：`Doc/07` Phase 0/Phase 1 周计划 checklist 与仓库现状同步（社区 adapter 标为 Phase 1.5；修正验证命令与 `reference_wiki` 名称）；`Doc/06` 目录树、CI/测试命令、`wikibench verify`、起步命令与 `Doc/10`/`examples/` 一致
 - [完成] 工程质量：Ruff 全局忽略 TC001/TC003 并删除 `per-file-ignores`；修复 B027/SIM102/B904/RUF043/TC006 等；`uv run ruff format` 对齐 CI；Mypy 通过（`types-PyYAML`、registry/reporters/cli 导入别名、`Modality`/cast、Unix `signal` 存根、`verify.py` 去掉冗余 ignore）；删除 `tests/unit/test_forum_renderer.py` 占位并更新 `Doc/10`、`Doc/06`
+- [完成] `Doc/07`：发布策略调整——首个 PyPI/launch 延后至 **llm-wiki-compiler** + **obsidian-wiki** 两个社区 adapter 跑通（§3.3、§4.4 1.5-W1）；与 v0.5.0 全量里程碑解耦；`§9.1`/§5.2.1/Phase 0 包发布项同步

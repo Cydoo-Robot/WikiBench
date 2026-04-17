@@ -56,7 +56,7 @@
   - [x] Issue / PR 模板
   - [ ] Discord / 额外即时通讯 — *可选*
 - [ ] **包发布（公网索引）**
-  - [ ] `v0.1.0-alpha` / `v0.2.0-alpha` 发布到 **TestPyPI / PyPI**（当前以源码 + `uv sync` 为主）
+  - [ ] `v0.1.0-alpha` / `v0.2.0-alpha`（或后续版本号）发布到 **TestPyPI / PyPI** — **闸门**：见 §3.3 / §4.4 **1.5-W1**（两个社区 adapter 跑通后再发）；当前以源码 + `uv sync` 为主
   - [x] 本地 / editable 安装后 `wikibench --version` 可用
 
 ### 退出条件
@@ -79,7 +79,7 @@
 - ✅ `wikibench run` CLI 能端到端跑通
 - ✅ HTML + Markdown + JSON 报告
 - ✅ SQLite 结果存储
-- [ ] **至少 1 个外部实现的社区 adapter**（ussumant / Ar9av 等 — **Phase 1.5**，见 §4；与内置 `naive` / `simple_summary` / `reference_wiki` 不同）
+- [ ] **社区 adapter（Phase 1.5）+ 公开首发**：**llm-wiki-compiler**（atomicmemory）与 **obsidian-wiki**（Ar9av）**两个**社区 adapter 在沙箱内跑通并通过 `wikibench verify`（§4.2 A/B、§4.4 **1.5-W1**）。**此后**再进行 **PyPI / TestPyPI** 与 **对外 launch**（§3.3、§9.1 一致）。在此之前以 **源码 + `uv sync`** 为主；MVP 代码闭环**不依赖** PyPI。其他上游（ussumant 等）可后续增量接入。
 
 **明确不做**：
 - ❌ 增量更新 / staleness（Phase 1.5）
@@ -159,15 +159,24 @@ wikibench run --impl reference_wiki --corpus ./my-corpus
 - [x] 端到端 e2e：`tests/e2e/test_full_run.py`（默认 `WIKIBENCH_LLM_MOCK=1`）
 - [x] `examples/` 四步 walkthrough（见仓库 `examples/README.md`）
 - [x] `CHANGELOG` + `Doc/10-测试说明书.md` 等文档迭代
-- [ ] **v0.2.0-alpha（或正式 v0.2.0）发布到 PyPI / TestPyPI** — *待办*
-- [ ] 写 launch 博文 + 原推评论区（低调）— *待办*
+- [ ] **v0.2.0-alpha（或正式 v0.2.0）发布到 PyPI / TestPyPI** — *延后至 §4.4 **1.5-W1**：**llm-wiki-compiler** + **obsidian-wiki** 两个社区 adapter 跑通后，与 §3.1「公开首发」同闸门*
+- [ ] 写 launch 博文 + 原推评论区（低调）— *与 PyPI/首发同步，不单独抢跑*
 
 **退出条件（MVP 成功标准）**：
-1. `git clone` + `uv sync --extra dev` 后，按 `examples/` 可在 **约 10 分钟内**跑通「语料 → run → 报告」；公网 `pip install` 以 PyPI 发布项为准。
+1. `git clone` + `uv sync --extra dev` 后，按 `examples/` 可在 **约 10 分钟内**跑通「语料 → run → 报告」。
 2. `synthetic-tiny` 上 T1–T3 全跑通；**small corpus（500+）** 为 Phase 1.5 数据目标，不阻塞 MVP 代码闭环。
-3. §3.1「必须做」中除 **社区 adapter** 外均已满足；社区 adapter 以 §4 Phase 1.5 为准。
+3. §3.1 中 **框架能力**（内置 adapter、CLI、报告、存储等）已满足；**社区 adapter** 与 **PyPI/首发** 按 Phase 1.5 与下文「发布策略」执行，**不反向阻塞**「MVP 代码是否完成」的判定。
+4. **发布策略（当前决议）**：**首个** `pip install wikibench`（PyPI / TestPyPI）与 **对外 launch**（博文、上游 repo 友好告知等）安排在 **两个** 目标社区 adapter（§4.2 A/B）**均**跑通之后；版本号可在首发时定为 **v0.2.x** 或 **v0.3.0**（由 CHANGELOG 约定），**不必**等到 §4.5 **v0.5.0** 的全量条件（T5、medium corpus、5 adapter 同台等）。
 
-### 3.3 MVP 风险缓冲
+### 3.3 发布策略（与 Phase 1.5 对齐）
+
+| 阶段 | 交付物 | 说明 |
+|------|--------|------|
+| **MVP 完成（当前）** | 框架 + 内置三 adapter + `synthetic-tiny` + CI/docs | 可克隆开发、本地评测；**无** PyPI |
+| **1.5-W1 完成** | `LLMWikiCompilerAdapter` + `ObsidianWikiAdapter` 沙箱跑通 + 契约/verify | **首发闸门**：此后可进行 **PyPI/TestPyPI** 与 **launch** |
+| **v0.5.0（§4.5）** | 5 adapter、多 tier corpus、T5、leaderboard 等 | **增强里程碑**，与「是否首次发 PyPI」**解耦**（除非团队改决议） |
+
+### 3.4 MVP 风险缓冲
 
 每周预留 **20% 缓冲时间**；如延期：
 - 先砍 `SimpleSummaryAdapter`（保 naive + reference 即可）
@@ -300,7 +309,7 @@ ingest / query
 
 | 周次 | 任务 | 交付 |
 |------|------|------|
-| 1.5-W1 | **LLMWikiCompilerAdapter** + ObsidianWikiAdapter 实现 + 契约扩展 | 两个社区 adapter 跑通；`wikibench verify` 覆盖社区 spec |
+| 1.5-W1 | **LLMWikiCompilerAdapter** + ObsidianWikiAdapter 实现 + 契约扩展 | 两个社区 adapter 跑通；`wikibench verify` 覆盖社区 spec；**§3.3 公开首发（PyPI + launch）闸门** |
 | 1.5-W2 | small corpus（k8s 500）+ 与内置三基线同跑验证 | 内置 naive / simple_summary / reference_wiki 已就绪；补 **small** 语料后可横向对比 |
 | 1.5-W3 | HN Fetcher + 数据清洗 | 可采集 HN Ask HN，输出 ForumThread JSON |
 | 1.5-W4 | SO XML Parser | 从 Data Dump 提取 5 个标签的 QA |
@@ -309,6 +318,8 @@ ingest / query
 | 1.5-W7-8 | Reddit PRAW + V2EX Scrapy + leaderboard 静态版 | 补充中文数据，leaderboard 上线 |
 
 ### 4.5 里程碑：v0.5.0
+
+> **与首发关系**：两个社区 adapter 跑通是 **§3.3 首个 PyPI** 的闸门；**v0.5.0** 仍包含更多条目（5 adapter 同台、corpus tier、T5 等），**晚于**首发，除非团队合并里程碑。
 
 退出条件：
 - **llm-wiki-compiler + obsidian-wiki** 两个社区 adapter 跑通，进入 leaderboard
@@ -334,7 +345,9 @@ ingest / query
 
 ### 5.2 推广策略
 
-#### 5.2.1 首发触达（v0.2.0 发布时）
+#### 5.2.1 首发触达（首个 PyPI / 对外 launch 时）
+
+> 与 §3.3 一致：**llm-wiki-compiler** + **obsidian-wiki** 两个社区 adapter 跑通后再执行；版本号可为 v0.2.x / v0.3.0（见 CHANGELOG）。
 
 - 在 [Karpathy 原始 LLM Wiki Gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) 评论区 **低调回复**，附 WikiBench 链接和一张对比截图
 - 在 llm-wiki-compiler / obsidian-wiki 两个 repo 的 Discussions 或 Issue 里友好告知：「WikiBench 已支持对你的工具进行标准化评测」
@@ -431,8 +444,10 @@ Triage（每周一次）：
 
 - **首批社区 adapter（llm-wiki-compiler / obsidian-wiki）接入方式**：已定为 **沙箱 + 真上游**，不讨论「是否自研等效实现」。`llm-wiki-compiler`：沙箱内 clone [atomicmemory/llm-wiki-compiler](https://github.com/atomicmemory/llm-wiki-compiler)，调用公开 **`llmwiki` CLI** 编排 ingest/query（§4.2 A）。`obsidian-wiki`：沙箱内 clone [Ar9av/obsidian-wiki](https://github.com/Ar9av/obsidian-wiki)，遵循 **§4.1.1** 与 **§4.2 B**（上游 `.skills/` 与 vault 约定，不另写平行编译器）。**工程排期**（何时写代码、何时进 leaderboard）以 **Phase 1.5 §4.4** 周计划为准，**不作为开放议题**。
 
+- **首个 PyPI / TestPyPI 与对外 launch**：**延后至** **llm-wiki-compiler** 与 **obsidian-wiki** **两个**社区 adapter **均**在沙箱内跑通（§4.4 **1.5-W1**，与 `wikibench verify` 约定一致）之后；详见 **§3.3**。**v0.5.0**（§4.5）为更完整的生态里程碑，**不**作为首个 PyPI 的必要条件。
+
 ### 9.2 未决议题
 
-- [ ] **推广节奏**：什么时候主动在 HN / Reddit 发布？建议等 v0.5.0 两个社区 adapter 跑通后，数字更有说服力
+- [ ] **推广节奏**：什么时候主动在 HN / Reddit **大规模**发帖？建议至少在 **§3.3 首发**（两个社区 adapter + PyPI）之后；若追求更强对比叙事可再等到 **v0.5.0** 多 adapter / 多 corpus 同台
 - [ ] **社区 Discussion 平台**：GitHub Discussions 够用还是需要 Discord？初期 Discussions 即可，有实质用户量再迁 Discord
 - [ ] **语言优先级**：中文 corpus 在 v0.7.0 还是 v1.0.0 引入？取决于是否有中文 LLM Wiki 实现者参与
