@@ -51,3 +51,16 @@
 - [完成] 新增单元测试：test_token_counter / test_cost / test_cache / test_llm / test_naive_adapter，共 52 新测试
 - [完成] 修复 Windows timeout yield-from bug
 - [完成] 周末验证：103 passed, 4 skipped；NaiveAdapter.ingest(docs).query(q) 在 mock 模式下返回合理响应
+
+## 2026-04-17 Phase 1 Week 3 — Task T1/T2/T3 + Runner 全流程
+
+- [完成] 实现 judge/base.py：JudgeVerdict 数据类 + BaseJudge ABC（judge_qa 方法）
+- [完成] 实现 judge/default.py：DefaultJudge（LLM-as-judge，Gemini Flash，温度 0，JSON 输出 + 容错解析）
+- [完成] 实现 T1 RetrievalAccuracyTask：prepare（QAPairs → Query list）+ score（DefaultJudge 评分）+ aggregate（mean + difficulty 分桶切片）
+- [完成] 实现 T2 KnowledgeFidelityTask：prepare（FidelityClaims → fidelity_check Query）+ score（verdict 直接匹配，无 LLM）+ aggregate（precision/recall/hallucination_rate + 混淆矩阵）
+- [完成] 实现 T3 ContradictionDetectionTask：prepare（ContradictionPairs → contradiction_check Query）+ score（has_contradiction 标志 + 文本推断 fallback）+ aggregate（recall/precision/F1）
+- [完成] 实现 runner/env.py：collect_environment 采集 python/os/wikibench/impl 版本 + llm_models + seed
+- [完成] 实现 Runner.run()：corpus 加载 → adapter 解析（实例/类/名称三种方式）→ CostTracker 安装 → ingest → 逐 Task（prepare+query+score+aggregate）→ BenchmarkResult 组装 → CostLimitExceededError 穿透
+- [完成] 实现 tests/integration/test_tasks.py（17 个测试，覆盖 T1/T2/T3 正常路径 + 边界情况）
+- [完成] 实现 tests/integration/test_runner.py（15 个测试，覆盖 Runner 初始化/全流程/cost_limit/unknown_task 等）
+- [完成] 周末验证：135 passed, 2 skipped；Runner(NaiveAdapter, corpus=tiny).run() 返回带分数的 BenchmarkResult
