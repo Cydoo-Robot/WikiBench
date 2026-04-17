@@ -1,0 +1,32 @@
+# WikiBench default configuration
+# Override any value via environment variable: WIKIBENCH__<SECTION>__<KEY>
+# e.g. WIKIBENCH__LLM__DEFAULT_MODEL=gpt-4o
+
+llm:
+  default_model: gpt-4o-mini
+  judge_model: gpt-4o
+  # api_key: ""           # reads from OPENAI_API_KEY / ANTHROPIC_API_KEY etc.
+  # base_url: ""          # override for Azure / local endpoints
+
+cache:
+  enabled: true
+  dir: .wikibench-cache
+  ttl_days: 30
+
+runner:
+  seed: 42
+  ingest_timeout_s: 1800   # 30 minutes
+  query_timeout_s: 60
+  max_parallel_queries: 4
+
+cost:
+  hard_limit_usd: 10.0     # abort run if exceeded
+  warn_threshold_usd: 5.0
+
+storage:
+  backend: sqlite           # sqlite | json
+  path: .wikibench-runs.db
+
+logging:
+  level: INFO
+  json: false

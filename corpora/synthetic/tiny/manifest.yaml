@@ -1,0 +1,11 @@
+id: synthetic-tiny@0.1.0
+version: "0.1.0"
+description: >
+  Minimal hand-crafted corpus for CI smoke tests.
+  Contains 5 documents, 10 QA pairs, 4 fidelity claims, and 2 contradiction pairs.
+tier: synthetic
+domain: saas_engineering
+language: en
+doc_count: 5
+created_at: "2026-04-17"
+wikibench_min_version: "0.1.0"

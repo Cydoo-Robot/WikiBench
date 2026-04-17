@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WikiBench Report — {{ result.impl }}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { color: #1a1a2e; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+    th { background: #f5f5f5; }
+  </style>
+</head>
+<body>
+  <h1>WikiBench Report</h1>
+  <p><strong>Implementation:</strong> {{ result.impl }}</p>
+  <p><strong>Corpus:</strong> {{ result.corpus_id }}</p>
+  <p><strong>Run ID:</strong> {{ result.run_id }}</p>
+  <p><em>Full HTML report — Phase 1 Week 6.</em></p>
+</body>
+</html>

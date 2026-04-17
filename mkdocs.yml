@@ -1,0 +1,76 @@
+site_name: WikiBench
+site_description: Evaluation infrastructure for LLM-maintained knowledge bases
+site_url: https://docs.wikibench.dev
+repo_url: https://github.com/your-org/WikiBench
+repo_name: WikiBench
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: en
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - footnotes
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Project Planning:
+    - Overview & Vision: planning/00-overview.md
+    - Requirements & Users: planning/01-requirements.md
+    - System Architecture: planning/02-architecture.md
+    - Dataset & Corpus Design: planning/03-datasets.md
+    - Tasks & Metrics: planning/04-tasks.md
+    - Adapter Interface: planning/05-adapter-interface.md
+    - Tech Stack & Engineering: planning/06-tech-stack.md
+    - Roadmap & MVP: planning/07-roadmap.md
+    - Leaderboard & Community: planning/08-leaderboard.md
+    - Crawlers & Forum Datasets: planning/09-crawlers.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+  - Reference:
+    - WikiAdapter Interface: reference/adapter.md
+    - Corpus Format: reference/corpus.md
+    - CLI Commands: reference/cli.md
+  - Contributing: contributing.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/your-org/WikiBench
