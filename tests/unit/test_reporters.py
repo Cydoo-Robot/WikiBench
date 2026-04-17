@@ -191,6 +191,16 @@ class TestResultStore:
         run_dir = store.save(minimal_result)
         assert (run_dir / "report.md").exists()
 
+    def test_save_creates_html(self, minimal_result: BenchmarkResult, tmp_path: Path) -> None:
+        from wikibench.storage.result_store import ResultStore
+        store = ResultStore(root=tmp_path, write_html=True)
+        run_dir = store.save(minimal_result)
+        html_path = run_dir / "report.html"
+        assert html_path.exists()
+        text = html_path.read_text(encoding="utf-8")
+        assert "<!DOCTYPE html>" in text
+        assert minimal_result.run_id in text
+
     def test_load_by_run_id(self, minimal_result: BenchmarkResult, tmp_path: Path) -> None:
         from wikibench.storage.result_store import ResultStore
         store = ResultStore(root=tmp_path)
@@ -252,6 +262,13 @@ class TestReportersDispatch:
         text = render(minimal_result, format="markdown")
         assert text is not None
         assert "WikiBench" in text
+
+    def test_html_dispatch_returns_string(self, minimal_result: BenchmarkResult) -> None:
+        from wikibench.reporters import render
+        text = render(minimal_result, format="html")
+        assert text is not None
+        assert "<!DOCTYPE html>" in text
+        assert minimal_result.run_id in text
 
     def test_unknown_format_raises(self, minimal_result: BenchmarkResult) -> None:
         from wikibench.reporters import render

@@ -104,3 +104,12 @@
 - [完成] `Doc/07` §9 拆分为「9.1 已决议」与「9.2 未决议题」：MVP 排期不绑定固定日历/N 周，以里程碑与完成度为准；未决议题去掉「6 周是否够」；adapter 接入措辞与沙箱 §4.1.1 对齐
 - [完成] `Doc/07` §9.1 增补已决议：第三方依赖在沙箱内从 GitHub 本地化部署；主 CI 不强制 Node，可选 job/本地验证；检索策略完全跟沙箱上游，WikiBench 不自造；原 §9.2 对应两条移出未决议
 - [完成] `Doc/07` §9.1 再增「首批社区 adapter 接入方式」为已决议（沙箱+CLI / 沙箱+§4.2 B）；排期指向 §4.4；§9.2 删除「第一个社区 adapter 接入时机」
+
+## 2026-04-17 Phase 1 Week 6 — HTML 报告、SQLite 存储与 CLI 集成
+
+- [完成] `reporters/html/renderer.py`：Jinja2 单页 HTML（内联 CSS），`render`/`save`；`reporters` 分发支持 `format=html`
+- [完成] `storage/sqlite.py`：`BenchmarkSqliteStore`（save/load/list_run_ids，WAL，UPSERT）
+- [完成] `ResultStore`：可选写出 `report.html`（`write_html`）；`cli/run.py` 增加 `--sqlite`，`--format html` 与 `--output` 组合时仅提示已写入目录内 `report.html`
+- [完成] `cli/report.py`：`show` 支持从 `.db` 加载（需 `--run-id`）、`--format html`；只读加载时使用 `write_html=False`
+- [完成] 单测：`test_reporters` 覆盖 HTML 与 `report.html`；新增 `test_sqlite_store`
+- [完成] `cli/run.py`：`TYPE_CHECKING` 导入 `BenchmarkResult`、`_print_report(report_format=...)` 消除 A002/TC001

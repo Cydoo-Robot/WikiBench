@@ -10,11 +10,11 @@ def render(result: BenchmarkResult, format: str = "console", **kwargs) -> str | 
 
     Args:
         result: The benchmark result to render.
-        format: One of ``"console"``, ``"json"``, ``"markdown"``.
+        format: One of ``"console"``, ``"json"``, ``"markdown"``, ``"html"``.
         **kwargs: Passed through to the format-specific renderer.
 
     Returns:
-        String output for ``"json"`` and ``"markdown"``; ``None`` for
+        String output for ``"json"``, ``"markdown"``, and ``"html"``; ``None`` for
         ``"console"`` (output goes directly to stdout via Rich).
     """
     if format == "console":
@@ -27,4 +27,7 @@ def render(result: BenchmarkResult, format: str = "console", **kwargs) -> str | 
     if format in ("markdown", "md"):
         from wikibench.reporters.markdown import render as _render
         return _render(result)
-    raise ValueError(f"Unknown format {format!r}. Choices: console, json, markdown.")
+    if format == "html":
+        from wikibench.reporters.html.renderer import render as _render
+        return _render(result)
+    raise ValueError(f"Unknown format {format!r}. Choices: console, json, markdown, html.")

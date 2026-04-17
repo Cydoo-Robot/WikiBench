@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-import sys
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated, Any
 
 import typer
 from rich.console import Console
+
+if TYPE_CHECKING:
+    from wikibench.models.result import BenchmarkResult
 
 app = typer.Typer(help="Run a WikiBench evaluation.")
 
@@ -14,7 +16,7 @@ _con = Console(stderr=True)
 
 
 @app.callback(invoke_without_command=True)
-def run(  # noqa: PLR0913
+def run(
     impl: Annotated[
         str,
         typer.Option("--impl", "-i", help="Adapter name (registered entry-point) or 'package:ClassName'."),
@@ -38,13 +40,17 @@ def run(  # noqa: PLR0913
     ] = False,
     output: Annotated[
         str | None,
-        typer.Option("--output", "-o", help="Directory to save results (JSON + Markdown)."),
+        typer.Option("--output", "-o", help="Directory to save results (JSON + Markdown + HTML)."),
     ] = None,
-    format: Annotated[  # noqa: A002
+    sqlite: Annotated[
+        str | None,
+        typer.Option("--sqlite", help="Also append this run to a SQLite file (benchmark_runs table)."),
+    ] = None,
+    format: Annotated[
         str,
         typer.Option(
             "--format", "-f",
-            help="Report format printed to stdout: console | json | markdown.",
+            help="Report format printed to stdout: console | json | markdown | html.",
         ),
     ] = "console",
     hard_limit: Annotated[
@@ -97,13 +103,19 @@ def run(  # noqa: PLR0913
         if not quiet:
             _con.print(f"Results saved to: {run_dir}")
 
+    if sqlite:
+        from wikibench.storage.sqlite import BenchmarkSqliteStore
+        BenchmarkSqliteStore(sqlite).save(result)
+        if not quiet:
+            _con.print(f"Run appended to SQLite: {sqlite}")
+
     # ── Print report ──────────────────────────────────────────────────────────
-    _print_report(result, format)
+    _print_report(result, report_format=format, output=output)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _resolve_adapter_spec(spec: str):
+def _resolve_adapter_spec(spec: str) -> Any:
     """Resolve an adapter spec string to a class or name.
 
     Supported formats:
@@ -127,19 +139,30 @@ def _resolve_adapter_spec(spec: str):
     return spec
 
 
-def _print_report(result, format: str) -> None:  # noqa: A002
+def _print_report(
+    result: BenchmarkResult,
+    *,
+    report_format: str,
+    output: str | None = None,
+) -> None:
     """Print the report in the requested format to stdout."""
     con_out = Console()  # stdout
 
-    if format == "console":
+    if report_format == "console":
         from wikibench.reporters.console import render
         render(result, console=con_out)
-    elif format == "json":
+    elif report_format == "json":
         from wikibench.reporters.json import render
         con_out.print(render(result))
-    elif format in ("markdown", "md"):
+    elif report_format in ("markdown", "md"):
         from wikibench.reporters.markdown import render
         con_out.print(render(result))
+    elif report_format == "html":
+        from wikibench.reporters.html.renderer import render as html_render
+        if output:
+            _con.print("[dim]HTML report also written as report.html under --output directory.[/dim]")
+        else:
+            con_out.print(html_render(result))
     else:
-        _con.print(f"[red]Unknown format '{format}'. Use: console | json | markdown.[/red]")
+        _con.print(f"[red]Unknown format '{report_format}'. Use: console | json | markdown | html.[/red]")
         raise typer.Exit(code=1)

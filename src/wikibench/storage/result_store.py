@@ -6,6 +6,7 @@ Directory layout
     <run_id>/
         result.json      — full serialised BenchmarkResult
         report.md        — Markdown human-readable report (optional)
+        report.html      — single-page HTML report (optional)
 ``
 
 Usage
@@ -23,6 +24,7 @@ from pathlib import Path
 from wikibench.models.result import BenchmarkResult
 from wikibench.reporters import json as json_reporter
 from wikibench.reporters import markdown as md_reporter
+from wikibench.reporters.html import renderer as html_reporter
 
 
 class ResultStore:
@@ -31,18 +33,25 @@ class ResultStore:
     Args:
         root: Root directory for storing results.
         write_markdown: Also write a ``report.md`` alongside ``result.json``.
+        write_html: Also write a ``report.html`` alongside ``result.json``.
     """
 
-    def __init__(self, root: str | Path = "./results", write_markdown: bool = True) -> None:
+    def __init__(
+        self,
+        root: str | Path = "./results",
+        write_markdown: bool = True,
+        write_html: bool = True,
+    ) -> None:
         self.root = Path(root)
         self.write_markdown = write_markdown
+        self.write_html = write_html
 
     # ── Write ─────────────────────────────────────────────────────────────────
 
     def save(self, result: BenchmarkResult) -> Path:
         """Persist *result* and return the directory path.
 
-        Creates ``<root>/<run_id>/result.json`` (and optionally ``report.md``).
+        Creates ``<root>/<run_id>/result.json`` (and optionally ``report.md`` / ``report.html``).
         """
         run_dir = self.root / result.run_id
         run_dir.mkdir(parents=True, exist_ok=True)
@@ -53,6 +62,10 @@ class ResultStore:
         if self.write_markdown:
             md_path = run_dir / "report.md"
             md_reporter.save(result, md_path)
+
+        if self.write_html:
+            html_path = run_dir / "report.html"
+            html_reporter.save(result, html_path)
 
         return run_dir.resolve()
 

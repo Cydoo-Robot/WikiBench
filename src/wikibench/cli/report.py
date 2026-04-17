@@ -23,9 +23,9 @@ def show(
             )
         ),
     ],
-    format: Annotated[  # noqa: A002
+    format: Annotated[
         str,
-        typer.Option("--format", "-f", help="Output format: console | json | markdown."),
+        typer.Option("--format", "-f", help="Output format: console | json | markdown | html."),
     ] = "console",
     out: Annotated[
         str | None,
@@ -64,16 +64,23 @@ def list_runs(
 
 def _do_report(path: str, format: str, out: str | None, run_id: str | None) -> None:
     from pathlib import Path
+
     from wikibench.storage.result_store import ResultStore
+    from wikibench.storage.sqlite import BenchmarkSqliteStore
 
     p = Path(path)
 
     try:
-        if run_id:
-            store = ResultStore(root=p, write_markdown=False)
+        if p.is_file() and p.suffix.lower() == ".db":
+            if not run_id:
+                _con.print("[red]--run-id is required when PATH is a SQLite .db file.[/red]")
+                raise typer.Exit(code=1)
+            result = BenchmarkSqliteStore(p).load(run_id)
+        elif run_id:
+            store = ResultStore(root=p, write_markdown=False, write_html=False)
             result = store.load(run_id)
         elif p.is_file() or (p.is_dir() and (p / "result.json").exists()):
-            store = ResultStore(root=p.parent, write_markdown=False)
+            store = ResultStore(root=p.parent, write_markdown=False, write_html=False)
             result = store.load_from_path(p)
         else:
             _con.print(f"[red]Path not found or unrecognised: {p}[/red]")
@@ -108,8 +115,15 @@ def _do_report(path: str, format: str, out: str | None, run_id: str | None) -> N
             _write_out(out, text)
         else:
             con_out.print(text)
+    elif format == "html":
+        from wikibench.reporters.html.renderer import render as html_render
+        text = html_render(result)
+        if out:
+            _write_out(out, text)
+        else:
+            con_out.print(text)
     else:
-        _con.print(f"[red]Unknown format '{format}'. Use: console | json | markdown.[/red]")
+        _con.print(f"[red]Unknown format '{format}'. Use: console | json | markdown | html.[/red]")
         raise typer.Exit(code=1)
 
 
