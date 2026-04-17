@@ -9,4 +9,6 @@
 .wikibench-cache/cache.db
 .wikibench-cache/.cache.db
 .wikibench-results/
+.wikibench-cache-demo/
+.wikibench-results-demo/
 .wikibench-sandboxes/

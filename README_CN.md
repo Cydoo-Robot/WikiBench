@@ -1,7 +1,7 @@
 # WikiBench
 The first benchmark suite for evaluating LLM-maintained knowledge bases. LLM Wiki, pioneered by Karpathy, is becoming core infrastructure for AI workflows — letting LLMs "compile" raw documents into structured knowledge bases, replacing the stateless retrieve-on-every-query pattern of RAG.
 
-
+**快速开始**：开发环境用 `uv sync --extra dev`，命令行 walkthrough 见仓库 [`examples/`](examples/README.md)（语料校验 → 合成语料 → `wikibench run` → 落盘与 SQLite）；测试说明见 [`Doc/10-测试说明书.md`](Doc/10-测试说明书.md)；变更记录见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 **为什么现有"基准"不够**
 
@@ -133,7 +133,7 @@ contradictions = [
 **项目介绍（企业团队受众版）**
 
 ```markdown
-# WikiProbe
+# WikiBench
 
 **生产级 LLM 知识库质量评测框架**
 
@@ -148,7 +148,7 @@ contradictions = [
   · 换一个底层模型，质量会下降多少？
   · 这套方案在我们自己的数据规模下还管用吗？
 
-WikiProbe 是第一个系统性回答这些问题的评测框架。
+WikiBench 是第一个系统性回答这些问题的评测框架。
 ```
 
 ***
@@ -174,10 +174,10 @@ WikiProbe 是第一个系统性回答这些问题的评测框架。
 
 **对比 WikiBench 的差异**
 
-|      | WikiBench | WikiProbe    |
+|      | WikiBench | WikiBench    |
 | ---- | --------- | ------------ |
 | 感觉   | 开源社区跑分工具  | 企业生产诊断框架     |
 | 使用场景 | 一次性对比测评   | 持续集成 + 长期监控  |
 | 核心价值 | 哪个实现更好    | 我们自己的知识库健不健康 |
 
-企业团队关心的不是"哪个开源库评分最高"，而是"我们自己部署的这套东西在生产里能不能信任"——`WikiProbe` 的命名直接对准这个痛点。
+企业团队关心的不是"哪个开源库评分最高"，而是"我们自己部署的这套东西在生产里能不能信任"——`WikiBench` 的命名直接对准这个痛点。

@@ -115,3 +115,6 @@
 - [完成] `cli/run.py`：`TYPE_CHECKING` 导入 `BenchmarkResult`、`_print_report(report_format=...)` 消除 A002/TC001
 - [完成] `tests/e2e/test_full_run.py`：启用端到端（`WIKIBENCH_LLM_MOCK=1`，无网络/API）；覆盖 `wikibench run` → `result.json`/`report.md`/`report.html` + SQLite + `report show`/`list`；`pyproject.toml` 中 `e2e` marker 说明同步
 - [完成] `.gitignore`：显式忽略 `.wikibench-cache/cache.db` 与 `.wikibench-cache/.cache.db`；对已误跟踪的 `cache.db` 执行 `git rm --cached`
+- [完成] 新增 `Doc/10-测试说明书.md`（运行命令、分层、marker、LLM mock、skip 说明）；`Doc/README.md` 导航增加第 10 条
+- [完成] MVP 封版准备（P0）：新增 `examples/` 四步示例（语料校验、合成语料、run mock/真 LLM、结果+SQLite+report）；`CHANGELOG.md`；版本升至 `0.2.0-alpha`；扩展根 `README.md`；`README_cn.md` 增加快速开始链接；`.gitignore` 增加 `demo` 缓存/结果目录；`Doc/10` 链到 `examples`
+- [完成] `tests/e2e/test_full_run.py`：`CliRunner(mix_stderr=False)`；`--impl` 改为 `wikibench.adapters.builtin.naive:NaiveAdapter`（不依赖 entry points）；`test_version` 断言随 `0.2.0-alpha` 更新

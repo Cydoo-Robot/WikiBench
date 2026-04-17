@@ -22,7 +22,8 @@ from wikibench.cli.main import app
 
 @pytest.fixture
 def cli_runner() -> CliRunner:
-    return CliRunner()
+    # Separate stderr so Result.stderr is defined (Click 8+ default merges streams).
+    return CliRunner(mix_stderr=False)
 
 
 @pytest.mark.e2e
@@ -39,12 +40,14 @@ def test_wikibench_run_full_pipeline_mock_llm(
     db_path = tmp_path / "bench.db"
     cache_dir = tmp_path / "cache"
 
+    # Use module:Class so the test does not rely on importlib.metadata entry points
+    # (editable installs with a broken dist-info RECORD may omit wikibench.adapters).
     invoke = cli_runner.invoke(
         app,
         [
             "run",
             "--impl",
-            "naive",
+            "wikibench.adapters.builtin.naive:NaiveAdapter",
             "--corpus",
             str(tiny_corpus_path),
             "--output",
